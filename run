@@ -1,0 +1,34 @@
+#!zsh
+
+function dc {
+    docker compose $@
+}
+
+function run {
+    dc run --rm $@
+}
+
+case $1 in
+  'dc')
+    dc ${@[@]:2}
+  ;;
+  'build')
+    dc build ${@[@]:2}
+  ;;
+  'down')
+    dc down --remove-orphans ${@[@]:2}
+  ;;
+  'up')
+    dc up -d ${@[@]:2}
+  ;;
+  'reload')
+    dc down --remove-orphans ${@[@]:2}
+    dc up -d ${@[@]:2}
+  ;;
+  'cli')
+    run cli ${@[@]:2}
+  ;;
+  *)
+    echo "unknown command $1"
+  ;;
+esac
