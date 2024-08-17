@@ -59,22 +59,12 @@ func ClearExpiredSessionsCron(ctx *systemContext.Context, period time.Duration) 
 		fmt.Sprintf("clearing expired sessions every %s", period),
 	)
 
-loop:
-	for {
-		select {
-		case <-ctx.Done():
-			break loop
-		case <-time.After(period):
-			if err := clearExpiredSessions(ctx); err != nil {
-				ctx.Log(
-					log.Error,
-					"failed to clear expired sessions",
-					log.NewLabel("error", err.Error()),
-				)
-
-				break loop
-			}
-		}
+	if err := cron(ctx, clearExpiredSessions, period); err != nil {
+		ctx.Log(
+			log.Error,
+			"clearing expired sessions failed",
+			log.NewLabel("error", err.Error()),
+		)
 	}
 
 	ctx.Log(
