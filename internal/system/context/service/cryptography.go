@@ -1,13 +1,21 @@
 package service
 
 import (
-	"api/internal/service/cryptography/hash"
+	"api/internal/model/log"
 )
 
-func Hash(ctx Context, data []byte) []byte {
-	return hash.Hash(ctx.Config().Cryptography(), data)
+type CryptographyContext struct {
+	ctx Context
 }
 
-func VerifyHash(ctx Context, data []byte, _signature []byte) bool {
-	return hash.Verify(ctx.Config().Cryptography(), data, _signature)
+func NewCryptographyContext(ctx Context) *CryptographyContext {
+	return &CryptographyContext{ctx: ctx}
+}
+
+func (ctx *CryptographyContext) Secret() string {
+	return ctx.ctx.Config().Cryptography().Secret()
+}
+
+func (ctx *CryptographyContext) Log(level log.Level, message string, labels ...*log.Label) {
+	ctx.ctx.Log(level, message, labels...)
 }

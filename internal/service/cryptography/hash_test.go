@@ -1,4 +1,4 @@
-package hash
+package cryptography
 
 import (
 	"testing"
@@ -11,7 +11,7 @@ func TestApiSignature(t *testing.T) {
 
 		signature := Hash(ctx, data)
 
-		if !Verify(ctx, data, signature) {
+		if !VerifyHash(ctx, data, signature) {
 			t.Errorf("unexpected hash verification failure")
 		}
 	})

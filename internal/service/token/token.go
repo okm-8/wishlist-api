@@ -5,7 +5,6 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"time"
 )
 
@@ -59,7 +58,6 @@ func Parse(ctx Context, token string) (*Token, error) {
 	fullPayload := tokenBytes[:payloadSize+4]
 
 	if err = ctx.VerifyHash(fullPayload, hash); err != nil {
-		fmt.Printf("payload: %s\n", fullPayload)
 		ctx.Log(log.Debug, "token hash is invalid", log.NewLabel("error", err.Error()))
 
 		return nil, ErrInvalid

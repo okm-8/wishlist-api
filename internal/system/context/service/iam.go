@@ -3,6 +3,7 @@ package service
 import (
 	"api/internal/model/session"
 	"api/internal/model/user"
+	"api/internal/service/cryptography"
 	sessionStore "api/internal/service/integration/pgx/session"
 	userStore "api/internal/service/integration/pgx/user"
 	"api/internal/system/context/service/integration"
@@ -13,6 +14,7 @@ type IamContext struct {
 	ctx             Context
 	userStoreCtx    userStore.Context
 	sessionStoreCtx sessionStore.Context
+	cryptographyCtx cryptography.Context
 }
 
 func NewIamContext(ctx Context) *IamContext {
@@ -20,6 +22,7 @@ func NewIamContext(ctx Context) *IamContext {
 		ctx:             ctx,
 		userStoreCtx:    integration.NewUserStoreContext(ctx.IntegrationContext()),
 		sessionStoreCtx: integration.NewSessionStoreContext(ctx.IntegrationContext()),
+		cryptographyCtx: NewCryptographyContext(ctx),
 	}
 }
 
@@ -54,10 +57,10 @@ func (ctx *IamContext) RevokeUserSession(session *session.UserSession) error {
 }
 
 func (ctx *IamContext) SetUserPassword(_user *user.User, password string) {
-	hash := Hash(ctx.ctx, []byte(password))
-	_user.ChangePasswordHash(hash)
+	_hash := cryptography.Hash(ctx.cryptographyCtx, []byte(password))
+	_user.ChangePasswordHash(_hash)
 }
 
 func (ctx *IamContext) CheckUserPassword(_user *user.User, password string) bool {
-	return VerifyHash(ctx.ctx, []byte(password), _user.PasswordHash())
+	return cryptography.VerifyHash(ctx.cryptographyCtx, []byte(password), _user.PasswordHash())
 }
