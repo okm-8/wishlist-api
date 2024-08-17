@@ -6,8 +6,9 @@ clean:
 clean-test:
 	go clean -testcache
 
+path ?= ./internal/...
 test:
-	go test ./internal/...
+	go test $(path)
 
 build:
 	go build -o ./bin/wishlist-api ./cmd
