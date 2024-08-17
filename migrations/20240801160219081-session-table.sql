@@ -9,6 +9,9 @@ CREATE TABLE IF NOT EXISTS sessions (
     expire_at TIMESTAMP NOT NULL
 );
 
+CREATE INDEX IF NOT EXISTS sessions_created_at_idx ON sessions (created_at);
+CREATE INDEX IF NOT EXISTS sessions_expire_at_idx ON sessions (expire_at);
+
 CREATE TABLE IF NOT EXISTS user_sessions (
     id uuid PRIMARY KEY,
     user_id uuid NOT NULL,
