@@ -2,14 +2,14 @@ package wishlist
 
 type Wishlist struct {
 	id          Id
-	wisher      WisherId
+	wisher      *Wisher
 	wishes      []*Wish
 	name        string
 	description string
 	hidden      bool
 }
 
-func NewWishlist(wisher WisherId, name, description string) *Wishlist {
+func NewWishlist(wisher *Wisher, name, description string) *Wishlist {
 	return &Wishlist{
 		id:          newId(),
 		name:        name,
@@ -20,7 +20,7 @@ func NewWishlist(wisher WisherId, name, description string) *Wishlist {
 	}
 }
 
-func RestoreWishlist(id Id, wisher WisherId, name, description string, wishes []*Wish, hidden bool) *Wishlist {
+func RestoreWishlist(id Id, wisher *Wisher, name, description string, wishes []*Wish, hidden bool) *Wishlist {
 	return &Wishlist{
 		id:          id,
 		wisher:      wisher,
@@ -43,7 +43,7 @@ func (wishlist *Wishlist) Description() string {
 	return wishlist.description
 }
 
-func (wishlist *Wishlist) Wisher() WisherId {
+func (wishlist *Wishlist) Wisher() *Wisher {
 	return wishlist.wisher
 }
 

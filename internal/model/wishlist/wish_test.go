@@ -6,6 +6,15 @@ import (
 	"testing"
 )
 
+func makeAssignee() *Assignee {
+	assigneeUid := uuid.New()
+	return RestoreAssignee(
+		RestoreAssigneeId(assigneeUid[:]),
+		"assignee name",
+		"assignee email",
+	)
+}
+
 func TestWish(t *testing.T) {
 	t.Run("should restore wish", func(t *testing.T) {
 		t.Parallel()
@@ -14,8 +23,7 @@ func TestWish(t *testing.T) {
 		sampleName := "wish name"
 		sampleDescription := "wish description"
 
-		assigneeUid := uuid.New()
-		sampleAssigneeId := RestoreAssigneeId(assigneeUid[:])
+		sampleAssignee := makeAssignee()
 
 		wish := RestoreWish(
 			sampleId,
@@ -23,7 +31,7 @@ func TestWish(t *testing.T) {
 			sampleDescription,
 			true,
 			true,
-			sampleAssigneeId,
+			sampleAssignee,
 		)
 
 		if wish.Id() != sampleId {
@@ -42,7 +50,7 @@ func TestWish(t *testing.T) {
 			t.Error("expected restored wish fulfilled to be equal to original wish fulfilled")
 		}
 
-		if wish.Assignee() != sampleAssigneeId {
+		if wish.Assignee() != sampleAssignee {
 			t.Error("expected restored wish assignee to be equal to original wish assignee")
 		}
 	})
@@ -51,8 +59,7 @@ func TestWish(t *testing.T) {
 		t.Parallel()
 
 		wish := NewWish("wish name", "wish description")
-		assigneeUid := uuid.New()
-		_ = wish.Promise(RestoreAssigneeId(assigneeUid[:]))
+		_ = wish.Promise(makeAssignee())
 
 		err := wish.Fulfill()
 
@@ -69,8 +76,7 @@ func TestWish(t *testing.T) {
 		t.Parallel()
 
 		wish := NewWish("wish name", "wish description")
-		assigneeUid := uuid.New()
-		_ = wish.Promise(RestoreAssigneeId(assigneeUid[:]))
+		_ = wish.Promise(makeAssignee())
 		_ = wish.Fulfill()
 
 		err := wish.Fulfill()
@@ -128,9 +134,8 @@ func TestWish(t *testing.T) {
 		t.Parallel()
 
 		wish := NewWish("wish name", "wish description")
-		assigneeUid := uuid.New()
 
-		err := wish.Promise(RestoreAssigneeId(assigneeUid[:]))
+		err := wish.Promise(makeAssignee())
 
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
@@ -144,13 +149,10 @@ func TestWish(t *testing.T) {
 	t.Run("should fail to promise promised wish", func(t *testing.T) {
 		t.Parallel()
 
-		assigneeUid := uuid.New()
-		assigneeId := RestoreAssigneeId(assigneeUid[:])
-
 		wish := NewWish("wish name", "wish description")
-		_ = wish.Promise(assigneeId)
+		_ = wish.Promise(makeAssignee())
 
-		err := wish.Promise(assigneeId)
+		err := wish.Promise(makeAssignee())
 
 		if err == nil {
 			t.Error("expected error to be returned")
@@ -165,8 +167,7 @@ func TestWish(t *testing.T) {
 		t.Parallel()
 
 		wish := NewWish("wish name", "wish description")
-		assigneeUid := uuid.New()
-		_ = wish.Promise(RestoreAssigneeId(assigneeUid[:]))
+		_ = wish.Promise(makeAssignee())
 
 		err := wish.Renege()
 
@@ -199,8 +200,7 @@ func TestWish(t *testing.T) {
 		t.Parallel()
 
 		wish := NewWish("wish name", "wish description")
-		assigneeUid := uuid.New()
-		_ = wish.Promise(RestoreAssigneeId(assigneeUid[:]))
+		_ = wish.Promise(makeAssignee())
 		_ = wish.Fulfill()
 
 		err := wish.Renege()

@@ -14,7 +14,7 @@ type Wish struct {
 	description string
 	fulfilled   bool
 	hidden      bool
-	assignee    AssigneeId
+	assignee    *Assignee
 }
 
 func NewWish(name, description string) *Wish {
@@ -24,7 +24,7 @@ func NewWish(name, description string) *Wish {
 		description: description,
 		fulfilled:   false,
 		hidden:      false,
-		assignee:    NilAssigneeId,
+		assignee:    nil,
 	}
 }
 
@@ -34,7 +34,7 @@ func RestoreWish(
 	description string,
 	fulfilled bool,
 	hidden bool,
-	assignee AssigneeId,
+	assignee *Assignee,
 ) *Wish {
 	return &Wish{
 		id:          id,
@@ -66,7 +66,7 @@ func (wish *Wish) Hidden() bool {
 	return wish.hidden
 }
 
-func (wish *Wish) Assignee() AssigneeId {
+func (wish *Wish) Assignee() *Assignee {
 	return wish.assignee
 }
 
@@ -92,7 +92,7 @@ func (wish *Wish) Show() {
 	wish.hidden = false
 }
 
-func (wish *Wish) Promise(assignee AssigneeId) error {
+func (wish *Wish) Promise(assignee *Assignee) error {
 	if wish.Promised() {
 		return ErrWishAlreadyPromised
 	}
@@ -118,11 +118,11 @@ func (wish *Wish) Renege() error {
 		return ErrorWishNotPromised
 	}
 
-	wish.assignee = NilAssigneeId
+	wish.assignee = nil
 
 	return nil
 }
 
 func (wish *Wish) Promised() bool {
-	return wish.assignee != NilAssigneeId
+	return wish.assignee != nil
 }

@@ -6,12 +6,20 @@ import (
 	"testing"
 )
 
+func makeWisher() *Wisher {
+	wisherUid := uuid.New()
+	return RestoreWisher(
+		RestoreWisherId(wisherUid[:]),
+		"wisher name",
+		"wisher email",
+	)
+}
+
 func TestWishlist(t *testing.T) {
 	t.Run("should restore wishlist", func(t *testing.T) {
 		t.Parallel()
 
-		wisherUid := uuid.New()
-		sampleWisherId := RestoreWisherId(wisherUid[:])
+		sampleWisher := makeWisher()
 		sampleWishlistId := newId()
 		sampleWishlistName := "wishlist name"
 		sampleWishlistDescription := "wishlist description"
@@ -22,7 +30,7 @@ func TestWishlist(t *testing.T) {
 
 		wishlist := RestoreWishlist(
 			sampleWishlistId,
-			sampleWisherId,
+			sampleWisher,
 			sampleWishlistName,
 			sampleWishlistDescription,
 			sampleWishes,
@@ -41,7 +49,7 @@ func TestWishlist(t *testing.T) {
 			t.Error("expected restored wishlist description to be equal to original wishlist description")
 		}
 
-		if wishlist.Wisher() != sampleWisherId {
+		if wishlist.Wisher() != sampleWisher {
 			t.Error("expected restored wishlist wisher to be equal to original wishlist wisher")
 		}
 
@@ -63,10 +71,7 @@ func TestWishlist(t *testing.T) {
 	t.Run("should add wish", func(t *testing.T) {
 		t.Parallel()
 
-		wisherUid := uuid.New()
-		sampleWisherId := RestoreWisherId(wisherUid[:])
-
-		wishlist := NewWishlist(sampleWisherId, "wishlist name", "wishlist description")
+		wishlist := NewWishlist(makeWisher(), "wishlist name", "wishlist description")
 
 		wish := wishlist.AddWish("wish name", "wish description")
 
@@ -82,10 +87,9 @@ func TestWishlist(t *testing.T) {
 	t.Run("should hide wishlist", func(t *testing.T) {
 		t.Parallel()
 
-		wisherUid := uuid.New()
-		sampleWisherId := RestoreWisherId(wisherUid[:])
+		sampleWisher := makeWisher()
 
-		wishlist := NewWishlist(sampleWisherId, "wishlist name", "wishlist description")
+		wishlist := NewWishlist(sampleWisher, "wishlist name", "wishlist description")
 
 		wishlist.Hide()
 
@@ -97,10 +101,7 @@ func TestWishlist(t *testing.T) {
 	t.Run("should show wishlist", func(t *testing.T) {
 		t.Parallel()
 
-		wisherUid := uuid.New()
-		sampleWisherId := RestoreWisherId(wisherUid[:])
-
-		wishlist := NewWishlist(sampleWisherId, "wishlist name", "wishlist description")
+		wishlist := NewWishlist(makeWisher(), "wishlist name", "wishlist description")
 
 		wishlist.Show()
 
@@ -112,13 +113,12 @@ func TestWishlist(t *testing.T) {
 	t.Run("should move wish to wishlist", func(t *testing.T) {
 		t.Parallel()
 
-		wisherUid := uuid.New()
-		sampleWisherId := RestoreWisherId(wisherUid[:])
+		sampleWisher := makeWisher()
 
-		wishlist := NewWishlist(sampleWisherId, "wishlist name", "wishlist description")
+		wishlist := NewWishlist(sampleWisher, "wishlist name", "wishlist description")
 		wish := wishlist.AddWish("wish name", "wish description")
 
-		otherWishList := NewWishlist(sampleWisherId, "wishlist name", "wishlist description")
+		otherWishList := NewWishlist(sampleWisher, "wishlist name", "wishlist description")
 
 		wishlist.MoveWish(wish.Id(), otherWishList)
 
