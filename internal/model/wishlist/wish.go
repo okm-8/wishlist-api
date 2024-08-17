@@ -4,7 +4,6 @@ import "errors"
 
 var (
 	ErrWishAlreadyFulfilled = errors.New("wish already fulfilled")
-	ErrWishAlreadyArchived  = errors.New("wish already archived")
 	ErrWishAlreadyPromised  = errors.New("wish already promised")
 	ErrorWishNotPromised    = errors.New("wish not promised")
 )
@@ -14,7 +13,7 @@ type Wish struct {
 	name        string
 	description string
 	fulfilled   bool
-	archived    bool
+	hidden      bool
 	assignee    AssigneeId
 }
 
@@ -24,7 +23,7 @@ func NewWish(name, description string) *Wish {
 		name:        name,
 		description: description,
 		fulfilled:   false,
-		archived:    false,
+		hidden:      false,
 		assignee:    NilAssigneeId,
 	}
 }
@@ -34,7 +33,7 @@ func RestoreWish(
 	name string,
 	description string,
 	fulfilled bool,
-	archived bool,
+	hidden bool,
 	assignee AssigneeId,
 ) *Wish {
 	return &Wish{
@@ -42,7 +41,7 @@ func RestoreWish(
 		name:        name,
 		description: description,
 		fulfilled:   fulfilled,
-		archived:    archived,
+		hidden:      hidden,
 		assignee:    assignee,
 	}
 }
@@ -63,8 +62,8 @@ func (wish *Wish) Fulfilled() bool {
 	return wish.fulfilled
 }
 
-func (wish *Wish) Archived() bool {
-	return wish.archived
+func (wish *Wish) Hidden() bool {
+	return wish.hidden
 }
 
 func (wish *Wish) Assignee() AssigneeId {
@@ -76,10 +75,6 @@ func (wish *Wish) Fulfill() error {
 		return ErrWishAlreadyFulfilled
 	}
 
-	if wish.archived {
-		return ErrWishAlreadyArchived
-	}
-
 	if !wish.Promised() {
 		return ErrorWishNotPromised
 	}
@@ -89,23 +84,17 @@ func (wish *Wish) Fulfill() error {
 	return nil
 }
 
-func (wish *Wish) Archive() error {
-	if wish.archived {
-		return ErrWishAlreadyArchived
-	}
+func (wish *Wish) Hide() {
+	wish.hidden = true
+}
 
-	wish.archived = true
-
-	return nil
+func (wish *Wish) Show() {
+	wish.hidden = false
 }
 
 func (wish *Wish) Promise(assignee AssigneeId) error {
 	if wish.Promised() {
 		return ErrWishAlreadyPromised
-	}
-
-	if wish.archived {
-		return ErrWishAlreadyArchived
 	}
 
 	if wish.fulfilled {
@@ -123,10 +112,6 @@ func (wish *Wish) Promise(assignee AssigneeId) error {
 func (wish *Wish) Renege() error {
 	if wish.fulfilled {
 		return ErrWishAlreadyFulfilled
-	}
-
-	if wish.archived {
-		return ErrWishAlreadyArchived
 	}
 
 	if !wish.Promised() {

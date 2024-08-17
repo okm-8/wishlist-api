@@ -42,10 +42,6 @@ func TestWish(t *testing.T) {
 			t.Error("expected restored wish fulfilled to be equal to original wish fulfilled")
 		}
 
-		if !wish.Archived() {
-			t.Error("expected restored wish archived to be equal to original wish archived")
-		}
-
 		if wish.Assignee() != sampleAssigneeId {
 			t.Error("expected restored wish assignee to be equal to original wish assignee")
 		}
@@ -88,25 +84,6 @@ func TestWish(t *testing.T) {
 		}
 	})
 
-	t.Run("should fail to fulfill archived wish", func(t *testing.T) {
-		t.Parallel()
-
-		wish := NewWish("wish name", "wish description")
-		assigneeUid := uuid.New()
-		_ = wish.Promise(RestoreAssigneeId(assigneeUid[:]))
-		_ = wish.Archive()
-
-		err := wish.Fulfill()
-
-		if err == nil {
-			t.Error("expected error to be returned")
-		}
-
-		if !errors.Is(err, ErrWishAlreadyArchived) {
-			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyArchived, err)
-		}
-	})
-
 	t.Run("should fail to fulfill un-promised wish", func(t *testing.T) {
 		t.Parallel()
 
@@ -123,36 +100,27 @@ func TestWish(t *testing.T) {
 		}
 	})
 
-	t.Run("should wish be archived", func(t *testing.T) {
+	t.Run("should wish be hidden", func(t *testing.T) {
 		t.Parallel()
 
 		wish := NewWish("wish name", "wish description")
 
-		err := wish.Archive()
+		wish.Hide()
 
-		if err != nil {
-			t.Errorf("unexpected error: %v", err)
-		}
-
-		if !wish.Archived() {
+		if !wish.Hidden() {
 			t.Error("expected wish to be archived")
 		}
 	})
 
-	t.Run("should fail to archive archived wish", func(t *testing.T) {
+	t.Run("should wish be shown", func(t *testing.T) {
 		t.Parallel()
 
 		wish := NewWish("wish name", "wish description")
-		_ = wish.Archive()
+		wish.Hide()
+		wish.Show()
 
-		err := wish.Archive()
-
-		if err == nil {
-			t.Error("expected error to be returned")
-		}
-
-		if !errors.Is(err, ErrWishAlreadyArchived) {
-			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyArchived, err)
+		if wish.Hidden() {
+			t.Error("expected wish to be shown")
 		}
 	})
 
@@ -170,26 +138,6 @@ func TestWish(t *testing.T) {
 
 		if !wish.Promised() {
 			t.Error("expected wish to be promised")
-		}
-	})
-
-	t.Run("should fail to promise archived wish", func(t *testing.T) {
-		t.Parallel()
-
-		assigneeUid := uuid.New()
-		assigneeId := RestoreAssigneeId(assigneeUid[:])
-
-		wish := NewWish("wish name", "wish description")
-		_ = wish.Archive()
-
-		err := wish.Promise(assigneeId)
-
-		if err == nil {
-			t.Error("expected error to be returned")
-		}
-
-		if !errors.Is(err, ErrWishAlreadyArchived) {
-			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyArchived, err)
 		}
 	})
 
@@ -263,25 +211,6 @@ func TestWish(t *testing.T) {
 
 		if !errors.Is(err, ErrWishAlreadyFulfilled) {
 			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyFulfilled, err)
-		}
-	})
-
-	t.Run("should fail to renege archived wish", func(t *testing.T) {
-		t.Parallel()
-
-		wish := NewWish("wish name", "wish description")
-		assigneeUid := uuid.New()
-		_ = wish.Promise(RestoreAssigneeId(assigneeUid[:]))
-		_ = wish.Archive()
-
-		err := wish.Renege()
-
-		if err == nil {
-			t.Error("expected error to be returned")
-		}
-
-		if !errors.Is(err, ErrWishAlreadyArchived) {
-			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyArchived, err)
 		}
 	})
 }
