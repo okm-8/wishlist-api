@@ -68,6 +68,10 @@ func (token *SessionToken) Session() *session.Session {
 	return token.session
 }
 
+func (token *SessionToken) Expired() bool {
+	return token.token.Expired()
+}
+
 func (token *SessionToken) String() string {
 	return token.token.String()
 }

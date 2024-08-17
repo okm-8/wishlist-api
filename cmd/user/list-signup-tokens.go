@@ -10,7 +10,7 @@ import (
 )
 
 var listSignupTokenCmd = &cobra.Command{
-	Use:   "list-signup-token <email>",
+	Use:   "list-signup-tokens <email>",
 	Short: "list signup tokens",
 	Long:  "list signup tokens",
 	Args:  cobra.ExactArgs(1),
@@ -27,6 +27,11 @@ var listSignupTokenCmd = &cobra.Command{
 		items := make([]pterm.BulletListItem, len(_tokens)*4)
 
 		for index, _token := range _tokens {
+			expireAt := fmt.Sprintf("Expire at: %s", _token.Session().ExpireAt().Format("2006-01-02 15:04:05"))
+			if _token.Expired() {
+				expireAt = pterm.FgRed.Sprint(expireAt)
+			}
+
 			items[index*4] = pterm.BulletListItem{
 				Level:  0,
 				Text:   fmt.Sprintf("Session ID: %s", _token.Session().Id()),
@@ -34,7 +39,7 @@ var listSignupTokenCmd = &cobra.Command{
 			}
 			items[index*4+1] = pterm.BulletListItem{
 				Level:  1,
-				Text:   fmt.Sprintf("Expires at: %s", _token.Session().ExpireAt().Format("2006-01-02 15:04:05")),
+				Text:   expireAt,
 				Bullet: " ",
 			}
 			items[index*4+2] = pterm.BulletListItem{
