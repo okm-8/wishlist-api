@@ -15,3 +15,6 @@ build:
 
 run-system:
 	go run ./cmd system core
+
+run-cli:
+	go run ./cmd $(cmd)
