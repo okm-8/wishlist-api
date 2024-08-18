@@ -16,6 +16,18 @@ var executeCmd = &cobra.Command{
 	Short: "Execute a migration",
 	Long:  "Execute a migration",
 	RunE: func(cmd *cobra.Command, args []string) error {
+		autoConfirm, err := cmd.Flags().GetBool("confirm")
+
+		if err != nil {
+			return err
+		}
+
+		force, err := cmd.Flags().GetBool("force")
+
+		if err != nil {
+			return err
+		}
+
 		ctx := cmd.Context().(*systemContext.Context).WithLabels(log.NewLabel("command", "migrations-execute"))
 
 		all := len(args) == 0
@@ -61,7 +73,7 @@ var executeCmd = &cobra.Command{
 		list := make([]pterm.BulletListItem, 0, len(_migrations))
 
 		for index, _migration := range _migrations {
-			if _migration.ExecutedAt() == nil {
+			if _migration.ExecutedAt() == nil || force {
 				toExecute = append(toExecute, _migration)
 				list = append(list, pterm.BulletListItem{
 					Level:       0,
@@ -79,12 +91,6 @@ var executeCmd = &cobra.Command{
 					BulletStyle: pterm.NewStyle(pterm.FgGray),
 				})
 			}
-		}
-
-		autoConfirm, err := cmd.Flags().GetBool("confirm")
-
-		if err != nil {
-			return err
 		}
 
 		if !autoConfirm {
@@ -113,6 +119,7 @@ var executeCmd = &cobra.Command{
 
 func ExecuteCmd() *cobra.Command {
 	executeCmd.PersistentFlags().BoolP("confirm", "y", false, "Confirm the execution of migrations")
+	executeCmd.Flags().BoolP("force", "f", false, "force re-execute executed migrations")
 
 	return executeCmd
 }
