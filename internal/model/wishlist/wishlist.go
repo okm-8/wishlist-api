@@ -9,19 +9,19 @@ type Wishlist struct {
 	hidden      bool
 }
 
-func NewWishlist(wisher *Wisher, name, description string) *Wishlist {
+func New(wisher *Wisher, name, description string) *Wishlist {
 	return &Wishlist{
 		id:          newId(),
-		name:        name,
-		description: description,
 		wisher:      wisher,
 		wishes:      make([]*Wish, 0),
+		name:        name,
+		description: description,
 		hidden:      false,
 	}
 }
 
-func RestoreWishlist(id Id, wisher *Wisher, name, description string, wishes []*Wish, hidden bool) *Wishlist {
-	return &Wishlist{
+func Restore(id Id, wisher *Wisher, name, description string, hidden bool, wishes []*Wish) *Wishlist {
+	wishlist := &Wishlist{
 		id:          id,
 		wisher:      wisher,
 		wishes:      wishes,
@@ -29,6 +29,12 @@ func RestoreWishlist(id Id, wisher *Wisher, name, description string, wishes []*
 		description: description,
 		hidden:      hidden,
 	}
+
+	for _, wish := range wishes {
+		wish.wishlist = wishlist
+	}
+
+	return wishlist
 }
 
 func (wishlist *Wishlist) Id() Id {
@@ -66,17 +72,7 @@ func (wishlist *Wishlist) Show() {
 func (wishlist *Wishlist) AddWish(name, description string) *Wish {
 	wish := NewWish(name, description)
 	wishlist.wishes = append(wishlist.wishes, wish)
+	wish.wishlist = wishlist
 
 	return wish
-}
-
-func (wishlist *Wishlist) MoveWish(wishId WishId, destination *Wishlist) {
-	for index, wish := range wishlist.wishes {
-		if wish.Id() == wishId {
-			wishlist.wishes = append(wishlist.wishes[:index], wishlist.wishes[index+1:]...)
-			destination.wishes = append(destination.wishes, wish)
-
-			return
-		}
-	}
 }

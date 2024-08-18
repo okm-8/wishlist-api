@@ -14,6 +14,7 @@ type Wish struct {
 	description string
 	fulfilled   bool
 	hidden      bool
+	wishlist    *Wishlist
 	assignee    *Assignee
 }
 
@@ -24,6 +25,7 @@ func NewWish(name, description string) *Wish {
 		description: description,
 		fulfilled:   false,
 		hidden:      false,
+		wishlist:    nil,
 		assignee:    nil,
 	}
 }
@@ -42,6 +44,7 @@ func RestoreWish(
 		description: description,
 		fulfilled:   fulfilled,
 		hidden:      hidden,
+		wishlist:    nil,
 		assignee:    assignee,
 	}
 }
@@ -66,12 +69,48 @@ func (wish *Wish) Hidden() bool {
 	return wish.hidden
 }
 
+func (wish *Wish) Wishlist() *Wishlist {
+	return wish.wishlist
+}
+
 func (wish *Wish) Assignee() *Assignee {
 	return wish.assignee
 }
 
-func (wish *Wish) Fulfill() error {
+func (wish *Wish) Promised() bool {
+	return wish.assignee != nil
+}
+
+func (wish *Wish) Rename(name string) error {
 	if wish.fulfilled {
+		return ErrWishAlreadyFulfilled
+	}
+
+	if wish.Promised() {
+		return ErrWishAlreadyPromised
+	}
+
+	wish.name = name
+
+	return nil
+}
+
+func (wish *Wish) UpdateDescription(description string) error {
+	if wish.Fulfilled() {
+		return ErrWishAlreadyFulfilled
+	}
+
+	if wish.Promised() {
+		return ErrWishAlreadyPromised
+	}
+
+	wish.description = description
+
+	return nil
+}
+
+func (wish *Wish) Fulfill() error {
+	if wish.Fulfilled() {
 		return ErrWishAlreadyFulfilled
 	}
 
@@ -97,7 +136,7 @@ func (wish *Wish) Promise(assignee *Assignee) error {
 		return ErrWishAlreadyPromised
 	}
 
-	if wish.fulfilled {
+	if wish.Fulfilled() {
 		// actually, by logic, it is impossible to fulfill a wish that is not promised yet
 		// also, it is impossible to dismiss a wish that is already fulfilled.
 		// we keep this check for the sake of consistency
@@ -110,7 +149,7 @@ func (wish *Wish) Promise(assignee *Assignee) error {
 }
 
 func (wish *Wish) Renege() error {
-	if wish.fulfilled {
+	if wish.Fulfilled() {
 		return ErrWishAlreadyFulfilled
 	}
 
@@ -123,6 +162,30 @@ func (wish *Wish) Renege() error {
 	return nil
 }
 
-func (wish *Wish) Promised() bool {
-	return wish.assignee != nil
+func (wish *Wish) Move(to *Wishlist) {
+	currentWishlist := wish.wishlist
+	if currentWishlist == to {
+		return
+	}
+
+	for index, _wish := range currentWishlist.wishes {
+		if _wish == wish {
+			currentWishlist.wishes = append(currentWishlist.wishes[:index], currentWishlist.wishes[index+1:]...)
+			break
+		}
+	}
+
+	exists := false
+	for _, _wish := range to.wishes {
+		if _wish == wish {
+			exists = true
+			break
+		}
+	}
+
+	if !exists {
+		to.wishes = append(to.wishes, wish)
+	}
+
+	wish.wishlist = to
 }

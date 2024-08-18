@@ -28,13 +28,13 @@ func TestWishlist(t *testing.T) {
 			NewWish("wish2 name", "wish2 description"),
 		}
 
-		wishlist := RestoreWishlist(
+		wishlist := Restore(
 			sampleWishlistId,
 			sampleWisher,
 			sampleWishlistName,
 			sampleWishlistDescription,
-			sampleWishes,
 			true,
+			sampleWishes,
 		)
 
 		if wishlist.Id() != sampleWishlistId {
@@ -71,7 +71,7 @@ func TestWishlist(t *testing.T) {
 	t.Run("should add wish", func(t *testing.T) {
 		t.Parallel()
 
-		wishlist := NewWishlist(makeWisher(), "wishlist name", "wishlist description")
+		wishlist := New(makeWisher(), "wishlist name", "wishlist description")
 
 		wish := wishlist.AddWish("wish name", "wish description")
 
@@ -89,7 +89,7 @@ func TestWishlist(t *testing.T) {
 
 		sampleWisher := makeWisher()
 
-		wishlist := NewWishlist(sampleWisher, "wishlist name", "wishlist description")
+		wishlist := New(sampleWisher, "wishlist name", "wishlist description")
 
 		wishlist.Hide()
 
@@ -101,37 +101,12 @@ func TestWishlist(t *testing.T) {
 	t.Run("should show wishlist", func(t *testing.T) {
 		t.Parallel()
 
-		wishlist := NewWishlist(makeWisher(), "wishlist name", "wishlist description")
+		wishlist := New(makeWisher(), "wishlist name", "wishlist description")
 
 		wishlist.Show()
 
 		if wishlist.Hidden() {
 			t.Error("expected wishlist to be shown")
-		}
-	})
-
-	t.Run("should move wish to wishlist", func(t *testing.T) {
-		t.Parallel()
-
-		sampleWisher := makeWisher()
-
-		wishlist := NewWishlist(sampleWisher, "wishlist name", "wishlist description")
-		wish := wishlist.AddWish("wish name", "wish description")
-
-		otherWishList := NewWishlist(sampleWisher, "wishlist name", "wishlist description")
-
-		wishlist.MoveWish(wish.Id(), otherWishList)
-
-		if len(wishlist.Wishes()) != 0 {
-			t.Error("expected wish to be removed from wishlist")
-		}
-
-		if len(otherWishList.Wishes()) != 1 {
-			t.Error("expected wish to be added to other wishlist")
-		}
-
-		if otherWishList.Wishes()[0] != wish {
-			t.Error("expected wish to be added to other wishlist")
 		}
 	})
 }

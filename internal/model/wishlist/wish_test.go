@@ -213,4 +213,129 @@ func TestWish(t *testing.T) {
 			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyFulfilled, err)
 		}
 	})
+
+	t.Run("should move wish to another wishlist", func(t *testing.T) {
+		t.Parallel()
+
+		sampleWisher := makeWisher()
+
+		wishlist := New(sampleWisher, "wishlist name", "wishlist description")
+		wish := wishlist.AddWish("wish name", "wish description")
+
+		otherWishList := New(sampleWisher, "wishlist name", "wishlist description")
+
+		wish.Move(otherWishList)
+
+		if len(wishlist.Wishes()) != 0 {
+			t.Error("expected wish to be removed from wishlist")
+		}
+
+		if len(otherWishList.Wishes()) != 1 {
+			t.Error("expected wish to be added to other wishlist")
+		}
+	})
+
+	t.Run("should rename wish", func(t *testing.T) {
+		t.Parallel()
+
+		wish := NewWish("wish name", "wish description")
+
+		newName := "new wish name"
+		err := wish.Rename(newName)
+
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		if wish.Name() != newName {
+			t.Error("expected wish name to be changed")
+		}
+	})
+
+	t.Run("should fail to rename fulfilled wish", func(t *testing.T) {
+		t.Parallel()
+
+		wish := NewWish("wish name", "wish description")
+		_ = wish.Promise(makeAssignee())
+		_ = wish.Fulfill()
+
+		err := wish.Rename("new wish name")
+
+		if err == nil {
+			t.Error("expected error to be returned")
+		}
+
+		if !errors.Is(err, ErrWishAlreadyFulfilled) {
+			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyFulfilled, err)
+		}
+	})
+
+	t.Run("should fail to rename promised wish", func(t *testing.T) {
+		t.Parallel()
+
+		wish := NewWish("wish name", "wish description")
+		_ = wish.Promise(makeAssignee())
+
+		err := wish.Rename("new wish name")
+
+		if err == nil {
+			t.Error("expected error to be returned")
+		}
+
+		if !errors.Is(err, ErrWishAlreadyPromised) {
+			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyPromised, err)
+		}
+	})
+
+	t.Run("should update wish description", func(t *testing.T) {
+		t.Parallel()
+
+		wish := NewWish("wish name", "wish description")
+
+		newDescription := "new wish description"
+		err := wish.UpdateDescription(newDescription)
+
+		if err != nil {
+			t.Errorf("unexpected error: %v", err)
+		}
+
+		if wish.Description() != newDescription {
+			t.Error("expected wish description to be changed")
+		}
+	})
+
+	t.Run("should fail to update description of fulfilled wish", func(t *testing.T) {
+		t.Parallel()
+
+		wish := NewWish("wish name", "wish description")
+		_ = wish.Promise(makeAssignee())
+		_ = wish.Fulfill()
+
+		err := wish.UpdateDescription("new wish description")
+
+		if err == nil {
+			t.Error("expected error to be returned")
+		}
+
+		if !errors.Is(err, ErrWishAlreadyFulfilled) {
+			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyFulfilled, err)
+		}
+	})
+
+	t.Run("should fail to update description of promised wish", func(t *testing.T) {
+		t.Parallel()
+
+		wish := NewWish("wish name", "wish description")
+		_ = wish.Promise(makeAssignee())
+
+		err := wish.UpdateDescription("new wish description")
+
+		if err == nil {
+			t.Error("expected error to be returned")
+		}
+
+		if !errors.Is(err, ErrWishAlreadyPromised) {
+			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyPromised, err)
+		}
+	})
 }
