@@ -7,7 +7,7 @@ import (
 )
 
 func Register(server *server.Server) {
-	server.HandleFunc("/healthcheck", internalHttp.Method(map[string]http.HandlerFunc{
+	server.HandleFunc("/healthcheck", internalHttp.Method(internalHttp.MethodMap{
 		http.MethodGet: healthcheck,
 	}))
 }
