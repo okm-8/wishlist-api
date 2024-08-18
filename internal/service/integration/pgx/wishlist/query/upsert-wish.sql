@@ -1,4 +1,4 @@
-INSERT INTO wishes(id, wishlist_id, name, description, hidden, fulfilled, assignee_id, created_at)
+INSERT INTO wishes(id, wishlist_id, name, description, hidden, fulfilled, assignee_id)
 VALUES (
     @id,
     @wishlistId,
@@ -6,8 +6,7 @@ VALUES (
     @description,
     @hidden,
     @fulfilled,
-    @assigneeId,
-    @createdAt
+    @assigneeId
 )
 ON CONFLICT (id) DO UPDATE SET
     wishlist_id = @wishlistId,
