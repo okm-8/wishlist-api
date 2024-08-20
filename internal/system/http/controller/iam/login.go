@@ -59,7 +59,7 @@ func login(writer http.ResponseWriter, request *http.Request) {
 	_session, err := iam.Login(ctx.IamContext(), _loginRequest)
 
 	if err != nil {
-		if errors.Is(err, ErrUserNotFound) {
+		if errors.Is(err, iam.ErrUserNotFound) {
 			internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "user not found", nil, nil)
 		} else if errors.Is(err, iam.ErrInvalidCredentials) {
 			internalHttp.WriteErrorResponse(ctx, writer, http.StatusUnauthorized, "invalid password", nil, nil)

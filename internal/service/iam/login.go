@@ -8,6 +8,7 @@ import (
 var (
 	ErrInvalidCredentials = errors.New("invalid credentials")
 	ErrPasswordNotSet     = errors.New("password not set")
+	ErrUserNotFound       = errors.New("user not found")
 )
 
 func Login(ctx Context, credentials Credentials) (*session.UserSession, error) {
@@ -15,6 +16,10 @@ func Login(ctx Context, credentials Credentials) (*session.UserSession, error) {
 
 	if err != nil {
 		return nil, err
+	}
+
+	if user == nil {
+		return nil, ErrUserNotFound
 	}
 
 	if !user.PasswordSet() {

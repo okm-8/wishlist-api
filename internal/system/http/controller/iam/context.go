@@ -10,11 +10,8 @@ import (
 	"api/internal/system/context/service"
 	"api/internal/system/context/service/integration"
 	httpContext "api/internal/system/http/context"
-	"errors"
 	"net/http"
 )
-
-var ErrUserNotFound = errors.New("user not found")
 
 type Context struct {
 	request         *http.Request
