@@ -598,12 +598,9 @@ func Update(
 	ctx Context,
 	wishlistId wishlist.Id,
 	doUpdate func(*wishlist.Wishlist) (*wishlist.Wishlist, error),
-) (*wishlist.Wishlist, error) {
-	var _wishlist *wishlist.Wishlist
-	var err error
-
-	err = driver.Transaction(ctx.DriverContext(), func(tx pgx.Tx) error {
-		_wishlist, err = selectById(ctx.RuntimeContext(), tx, wishlistId)
+) error {
+	return driver.Transaction(ctx.DriverContext(), func(tx pgx.Tx) error {
+		_wishlist, err := selectById(ctx.RuntimeContext(), tx, wishlistId)
 
 		if err != nil {
 			return err
@@ -634,8 +631,6 @@ func Update(
 
 		return nil
 	}, driver.TxUpdateDefaultOpts)
-
-	return _wishlist, err
 }
 
 // UpdateWish updates a wish.
@@ -650,12 +645,9 @@ func UpdateWish(
 	ctx Context,
 	wishId wishlist.WishId,
 	doUpdate func(*wishlist.Wish) (*wishlist.Wish, error),
-) (*wishlist.Wish, error) {
-	var _wish *wishlist.Wish
-	var err error
-
-	err = driver.Transaction(ctx.DriverContext(), func(tx pgx.Tx) error {
-		_wish, err = selectWishById(ctx.RuntimeContext(), tx, wishId)
+) error {
+	return driver.Transaction(ctx.DriverContext(), func(tx pgx.Tx) error {
+		_wish, err := selectWishById(ctx.RuntimeContext(), tx, wishId)
 
 		if err != nil {
 			return err
@@ -674,8 +666,6 @@ func UpdateWish(
 
 		return upsertWish(ctx.RuntimeContext(), tx, updatedWish)
 	}, driver.TxUpdateDefaultOpts)
-
-	return _wish, err
 }
 
 func GetByWisherId(ctx Context, wisherId wishlist.WisherId) ([]*wishlist.Wishlist, error) {
