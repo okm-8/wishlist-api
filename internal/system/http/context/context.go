@@ -68,6 +68,8 @@ func (ctx *RequestContext) Token() (*token.SessionToken, error) {
 		authHeader, err := internalHttp.ReadAuthHeader(ctx.request)
 
 		if err != nil {
+			ctx.Log(log.Debug, "failed to read auth header", log.NewLabel("error", err.Error()))
+
 			ctx.tokenErr = err
 
 			return nil, err
@@ -76,6 +78,8 @@ func (ctx *RequestContext) Token() (*token.SessionToken, error) {
 		ctx.token, err = token.ParseSessionToken(ctx.tokenCtx, authHeader)
 
 		if err != nil {
+			ctx.Log(log.Debug, "failed to parse token", log.NewLabel("error", err.Error()))
+
 			ctx.tokenErr = err
 
 			return nil, err
@@ -102,12 +106,16 @@ func (ctx *RequestContext) UserSession() (*session.UserSession, error) {
 		_userSession, err := sessionStore.FindUserSession(ctx.sessionStoreCtx, _token.Session().Id())
 
 		if err != nil {
+			ctx.Log(log.Error, "failed to find user session", log.NewLabel("error", err.Error()))
+
 			ctx.userSessionErr = err
 
 			return nil, err
 		}
 
 		if _userSession == nil {
+			ctx.Log(log.Debug, "user session not found")
+
 			ctx.userSessionErr = ErrNotAUser
 
 			return nil, ErrNotAUser
