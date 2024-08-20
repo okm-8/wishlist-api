@@ -76,3 +76,11 @@ func (wishlist *Wishlist) AddWish(name, description string) *Wish {
 
 	return wish
 }
+
+func (wishlist *Wishlist) Rename(name string) {
+	wishlist.name = name
+}
+
+func (wishlist *Wishlist) UpdateDescription(description string) {
+	wishlist.description = description
+}
