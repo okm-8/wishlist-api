@@ -15,6 +15,8 @@ func AuthorizedOnly(handler http.HandlerFunc) http.HandlerFunc {
 		user, err := ctx.User()
 
 		if err != nil {
+			ctx.Log(log.Debug, "failed to get user", log.NewLabel("error", err.Error()))
+
 			internalHttp.WriteErrorResponse(
 				ctx,
 				writer,
@@ -23,6 +25,8 @@ func AuthorizedOnly(handler http.HandlerFunc) http.HandlerFunc {
 				[]error{errors.New("user is not authorized")},
 				nil,
 			)
+
+			return
 		}
 
 		handler(writer, request.WithContext(ctx.WithLabels(
@@ -46,6 +50,8 @@ func AdminOnly(handler http.HandlerFunc) http.HandlerFunc {
 				[]error{errors.New("user is not an admin")},
 				nil,
 			)
+
+			return
 		}
 
 		handler(writer, request)
