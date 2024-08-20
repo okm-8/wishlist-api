@@ -3,7 +3,7 @@
  * Description: wishlist model
  */
 
-CREATE TABLE wishlists
+CREATE TABLE IF NOT EXISTS wishlists
 (
     id          UUID PRIMARY KEY,
     wisher_id   UUID         NOT NULL,
@@ -14,10 +14,10 @@ CREATE TABLE wishlists
     FOREIGN KEY (wisher_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_wishlist_wisher_id ON wishlists (wisher_id);
-CREATE INDEX idx_wishlist_created_at ON wishlists (created_at);
+CREATE INDEX IF NOT EXISTS idx_wishlist_wisher_id ON wishlists (wisher_id);
+CREATE INDEX IF NOT EXISTS idx_wishlist_created_at ON wishlists (created_at);
 
-CREATE TABLE wishes
+CREATE TABLE IF NOT EXISTS wishes
 (
     id          UUID PRIMARY KEY,
     wishlist_id UUID         NOT NULL,
@@ -31,10 +31,9 @@ CREATE TABLE wishes
     FOREIGN KEY (assignee_id) REFERENCES users (id) ON DELETE CASCADE
 );
 
-CREATE INDEX idx_wish_wishlist_id ON wishes (wishlist_id);
-CREATE INDEX idx_wish_created_at ON wishes (created_at);
-CREATE INDEX idx_wish_assignee_id ON wishes (assignee_id);
-
+CREATE INDEX IF NOT EXISTS idx_wish_wishlist_id ON wishes (wishlist_id);
+CREATE INDEX IF NOT EXISTS idx_wish_created_at ON wishes (created_at);
+CREATE INDEX IF NOT EXISTS idx_wish_assignee_id ON wishes (assignee_id);
 
 CREATE OR REPLACE VIEW wishes_view AS (
     SELECT
@@ -56,7 +55,7 @@ CREATE OR REPLACE VIEW wishes_view AS (
         wisher.email AS wisher_email,
         wisher.name AS wisher_name
     FROM wishes AS wish
-    INNER JOIN wishlists AS wishlist ON wish.wishlist_id = wishlist.id
+    RIGHT JOIN wishlists AS wishlist ON wish.wishlist_id = wishlist.id
     INNER JOIN users AS wisher ON wishlist.wisher_id = wisher.id
     LEFT JOIN users AS assignee ON wish.assignee_id = assignee.id
 );

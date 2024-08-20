@@ -138,15 +138,15 @@ func selectByWisherId(
 	var wisher *wishlist.Wisher
 
 	for rows.Next() {
-		var idStr string
-		var name string
-		var description string
-		var hidden bool
-		var fulfilled bool
+		var idStr *string
+		var name *string
+		var description *string
+		var hidden *bool
+		var fulfilled *bool
 		var assigneeIdStr *string
 		var assigneeEmail *string
 		var assigneeName *string
-		var wishlistId string
+		var wishlistIdStr string
 		var wishlistName string
 		var wishlistDescription string
 		var wishlistHidden bool
@@ -162,7 +162,7 @@ func selectByWisherId(
 			&assigneeIdStr,
 			&assigneeEmail,
 			&assigneeName,
-			&wishlistId,
+			&wishlistIdStr,
 			&wishlistName,
 			&wishlistDescription,
 			&wishlistHidden,
@@ -179,7 +179,7 @@ func selectByWisherId(
 		}
 
 		var id wishlist.Id
-		id, err = wishlist.ParseId(idStr)
+		id, err = wishlist.ParseId(wishlistIdStr)
 
 		if err != nil {
 			return nil, err
@@ -209,21 +209,23 @@ func selectByWisherId(
 			}
 		}
 
-		var wishId wishlist.WishId
-		wishId, err = wishlist.ParseWishId(idStr)
+		if idStr != nil {
+			var wishId wishlist.WishId
+			wishId, err = wishlist.ParseWishId(*idStr)
 
-		if err != nil {
-			return nil, err
+			if err != nil {
+				return nil, err
+			}
+
+			wishlists.addWish(id, wishlist.RestoreWish(
+				wishId,
+				*name,
+				*description,
+				*fulfilled,
+				*hidden,
+				assignee,
+			))
 		}
-
-		wishlists.addWish(id, wishlist.RestoreWish(
-			wishId,
-			name,
-			description,
-			fulfilled,
-			hidden,
-			assignee,
-		))
 	}
 
 	return wishlists.toWishlists(), nil
@@ -262,7 +264,7 @@ func selectByAssigneeId(
 		var fulfilled bool
 		var assigneeEmail string
 		var assigneeName string
-		var wishlistId string
+		var wishlistIdStr string
 		var wishlistName string
 		var wishlistDescription string
 		var wishlistHidden bool
@@ -278,7 +280,7 @@ func selectByAssigneeId(
 			&fulfilled,
 			&assigneeEmail,
 			&assigneeName,
-			&wishlistId,
+			&wishlistIdStr,
 			&wishlistName,
 			&wishlistDescription,
 			&wishlistHidden,
@@ -292,7 +294,7 @@ func selectByAssigneeId(
 		}
 
 		var id wishlist.Id
-		id, err = wishlist.ParseId(idStr)
+		id, err = wishlist.ParseId(wishlistIdStr)
 
 		if err != nil {
 			return nil, err
@@ -302,7 +304,8 @@ func selectByAssigneeId(
 		var ok bool
 
 		if wisherIdStr != "" {
-			wisherId, err := wishlist.ParseWisherId(wisherIdStr)
+			var wisherId wishlist.WisherId
+			wisherId, err = wishlist.ParseWisherId(wisherIdStr)
 
 			if err != nil {
 				return nil, err
@@ -368,11 +371,11 @@ func selectById(
 	}
 
 	for rows.Next() {
-		var idStr string
-		var name string
-		var description string
-		var hidden bool
-		var fulfilled bool
+		var idStr *string
+		var name *string
+		var description *string
+		var hidden *bool
+		var fulfilled *bool
 		var assigneeIdStr *string
 		var assigneeEmail *string
 		var assigneeName *string
@@ -405,8 +408,11 @@ func selectById(
 		}
 
 		if wisher == nil {
+			var wisherId wishlist.WisherId
+			wisherId, err = wishlist.ParseWisherId(wisherIdStr)
+
 			wisher = wishlist.RestoreWisher(
-				wishlist.NilWisherId,
+				wisherId,
 				wisherName,
 				wisherEmail,
 			)
@@ -439,21 +445,23 @@ func selectById(
 			}
 		}
 
-		var wishId wishlist.WishId
-		wishId, err = wishlist.ParseWishId(idStr)
+		if idStr != nil {
+			var wishId wishlist.WishId
+			wishId, err = wishlist.ParseWishId(*idStr)
 
-		if err != nil {
-			return nil, err
+			if err != nil {
+				return nil, err
+			}
+
+			record.Wishes = append(record.Wishes, wishlist.RestoreWish(
+				wishId,
+				*name,
+				*description,
+				*fulfilled,
+				*hidden,
+				assignee,
+			))
 		}
-
-		record.Wishes = append(record.Wishes, wishlist.RestoreWish(
-			wishId,
-			name,
-			description,
-			fulfilled,
-			hidden,
-			assignee,
-		))
 	}
 
 	if record == nil {
