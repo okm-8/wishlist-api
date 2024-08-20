@@ -3,6 +3,7 @@ package iam
 import (
 	"api/internal/service/iam"
 	internalHttp "api/internal/service/integration/http"
+	"api/internal/system/validation"
 	"errors"
 	"net/http"
 )
@@ -12,20 +13,6 @@ type loginRequest struct {
 	PasswordValue string `json:"password"`
 }
 
-func (request *loginRequest) Validate() []error {
-	var result []error
-
-	if request.EmailValue == "" {
-		result = append(result, errors.New("email is required"))
-	}
-
-	if request.PasswordValue == "" {
-		result = append(result, errors.New("password is required"))
-	}
-
-	return result
-}
-
 func (request *loginRequest) Email() string {
 	return request.EmailValue
 }
@@ -33,6 +20,28 @@ func (request *loginRequest) Email() string {
 func (request *loginRequest) Password() string {
 	return request.PasswordValue
 }
+
+var validateLoginRequest = validation.Struct(
+	validation.StructField(
+		"email",
+		func(request *loginRequest) any {
+			return request.EmailValue
+		},
+		validation.String(
+			validation.NotEmpty(),
+			validation.Email(),
+		),
+	),
+	validation.StructField(
+		"password",
+		func(request *loginRequest) any {
+			return request.PasswordValue
+		},
+		validation.String(
+			validation.NotEmpty(),
+		),
+	),
+)
 
 type loginResponse struct {
 	Token string `json:"token"`
@@ -50,7 +59,7 @@ func login(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if errs := _loginRequest.Validate(); len(errs) > 0 {
+	if errs := validateLoginRequest(_loginRequest); len(errs) > 0 {
 		internalHttp.WriteErrorResponse(ctx, writer, http.StatusBadRequest, "invalid request", errs, nil)
 
 		return

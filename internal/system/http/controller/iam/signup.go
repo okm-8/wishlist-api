@@ -6,6 +6,7 @@ import (
 	internalHttp "api/internal/service/integration/http"
 	userStore "api/internal/service/integration/pgx/user"
 	"api/internal/service/token"
+	"api/internal/system/validation"
 	"errors"
 	"net/http"
 )
@@ -14,24 +15,6 @@ type signUpRequest struct {
 	EmailValue    string `json:"email"`
 	NameValue     string `json:"name"`
 	PasswordValue string `json:"password"`
-}
-
-func (request *signUpRequest) Validate() []error {
-	var result []error
-
-	if request.EmailValue == "" {
-		result = append(result, errors.New("email is required"))
-	}
-
-	if request.NameValue == "" {
-		result = append(result, errors.New("name is required"))
-	}
-
-	if request.PasswordValue == "" {
-		result = append(result, errors.New("password is required"))
-	}
-
-	return result
 }
 
 func (request *signUpRequest) Email() string {
@@ -45,6 +28,39 @@ func (request *signUpRequest) Name() string {
 func (request *signUpRequest) Password() string {
 	return request.PasswordValue
 }
+
+var validateSignUpRequest = validation.Struct(
+	validation.StructField(
+		"email",
+		func(request *signUpRequest) any {
+			return request.EmailValue
+		},
+		validation.String(
+			validation.NotEmpty(),
+			validation.Email(),
+			validation.MaxLength(255),
+		),
+	),
+	validation.StructField(
+		"name",
+		func(request *signUpRequest) any {
+			return request.NameValue
+		},
+		validation.String(
+			validation.NotEmpty(),
+			validation.MaxLength(255),
+		),
+	),
+	validation.StructField(
+		"password",
+		func(request *signUpRequest) any {
+			return request.PasswordValue
+		},
+		validation.String(
+			validation.NotEmpty(),
+		),
+	),
+)
 
 type singUpResponse struct {
 	UserId string `json:"userId"`
@@ -90,7 +106,7 @@ func signUp(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if errs := _signUpRequest.Validate(); len(errs) > 0 {
+	if errs := validateSignUpRequest(_signUpRequest); len(errs) > 0 {
 		internalHttp.WriteErrorResponse(ctx, writer, http.StatusBadRequest, "invalid request", errs, nil)
 
 		return
@@ -162,7 +178,7 @@ func signupNoToken(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	if errs := _signUpRequest.Validate(); len(errs) > 0 {
+	if errs := validateSignUpRequest(_signUpRequest); len(errs) > 0 {
 		internalHttp.WriteErrorResponse(ctx, writer, http.StatusBadRequest, "invalid request", errs, nil)
 
 		return
