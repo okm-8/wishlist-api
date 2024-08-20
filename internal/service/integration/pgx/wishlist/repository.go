@@ -47,10 +47,11 @@ func upsertWish(
 	executor driver.CommandExecutor,
 	wish *wishlist.Wish,
 ) error {
-	assigneeId := wishlist.NilAssigneeId
+	var assigneeId *string
 
 	if wish.Promised() {
-		assigneeId = wish.Assignee().Id()
+		assigneeIdStr := wish.Assignee().Id().String()
+		assigneeId = &assigneeIdStr
 	}
 
 	_, err := executor.Exec(ctx, upsertWishSQL, pgx.NamedArgs{
@@ -60,7 +61,7 @@ func upsertWish(
 		"description": wish.Description(),
 		"hidden":      wish.Hidden(),
 		"fulfilled":   wish.Fulfilled(),
-		"assigneeId":  assigneeId.String(),
+		"assigneeId":  assigneeId,
 	})
 
 	return err

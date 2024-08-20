@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS wishes
     description TEXT         NOT NULL DEFAULT '',
     hidden      BOOLEAN      NOT NULL DEFAULT FALSE,
     fulfilled   BOOLEAN      NOT NULL DEFAULT FALSE,
-    assignee_id UUID         NOT NULL DEFAULT '00000000-0000-0000-0000-000000000000', -- NULL UUID
+    assignee_id UUID         NULL,
     created_at  TIMESTAMP    NOT NULL DEFAULT NOW(),
     FOREIGN KEY (wishlist_id) REFERENCES wishlists (id) ON DELETE CASCADE,
     FOREIGN KEY (assignee_id) REFERENCES users (id) ON DELETE CASCADE
