@@ -67,11 +67,11 @@ func signUp(writer http.ResponseWriter, request *http.Request) {
 
 		if isSingUpTokenInvalid(err) {
 			internalHttp.WriteErrorResponse(ctx, writer, http.StatusUnauthorized, "invalid token", nil, nil)
-
-			return
+		} else {
+			internalHttp.WriteInternalServerErrorResponse(ctx, writer, err)
 		}
 
-		internalHttp.WriteInternalServerErrorResponse(ctx, writer, err)
+		return
 	}
 
 	if singUpToken.Session().Expired() {
@@ -100,6 +100,8 @@ func signUp(writer http.ResponseWriter, request *http.Request) {
 
 	if err != nil {
 		internalHttp.WriteInternalServerErrorResponse(ctx, writer, err)
+
+		return
 	}
 
 	if _signupSession == nil {
@@ -126,17 +128,19 @@ func signUp(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		if errors.Is(err, userStore.ErrEmailExists) {
 			internalHttp.WriteErrorResponse(ctx, writer, http.StatusConflict, "email already exists", nil, nil)
-
-			return
+		} else {
+			internalHttp.WriteInternalServerErrorResponse(ctx, writer, err)
 		}
 
-		internalHttp.WriteInternalServerErrorResponse(ctx, writer, err)
+		return
 	}
 
 	err = ctx.CloseSession(_signupSession.Session())
 
 	if err != nil {
 		internalHttp.WriteInternalServerErrorResponse(ctx, writer, err)
+
+		return
 	}
 
 	internalHttp.WriteDataResponse(ctx, writer, http.StatusCreated, singUpResponse{
@@ -169,11 +173,11 @@ func signupNoToken(writer http.ResponseWriter, request *http.Request) {
 	if err != nil {
 		if errors.Is(err, userStore.ErrEmailExists) {
 			internalHttp.WriteErrorResponse(ctx, writer, http.StatusConflict, "email already exists", nil, nil)
-
-			return
+		} else {
+			internalHttp.WriteInternalServerErrorResponse(ctx, writer, err)
 		}
 
-		panic(err)
+		return
 	}
 
 	internalHttp.WriteDataResponse(ctx, writer, http.StatusCreated, singUpResponse{
