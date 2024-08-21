@@ -6,6 +6,7 @@ import (
 	"context"
 	_ "embed"
 	"errors"
+
 	"github.com/jackc/pgx/v5"
 )
 
@@ -32,7 +33,7 @@ var (
 	ErrorNilWisReturned      = errors.New("nil wish returned")
 )
 
-func insert(ctx context.Context, executor driver.CommandExecutor, wishlist *wishlist.Wishlist) error {
+func upsert(ctx context.Context, executor driver.CommandExecutor, wishlist *wishlist.Wishlist) error {
 	_, err := executor.Exec(ctx, insertSQL, pgx.NamedArgs{
 		"id":          wishlist.Id().String(),
 		"wisherId":    wishlist.Wisher().Id().String(),
@@ -185,7 +186,7 @@ func selectByWisherIdActive(
 
 func Store(ctx Context, wishlist *wishlist.Wishlist) error {
 	return driver.Transaction(ctx.DriverContext(), func(tx pgx.Tx) error {
-		if err := insert(ctx.RuntimeContext(), tx, wishlist); err != nil {
+		if err := upsert(ctx.RuntimeContext(), tx, wishlist); err != nil {
 			return err
 		}
 
@@ -227,10 +228,8 @@ func Update(
 			return ErrorNilWishlistReturned
 		}
 
-		if _wishlist == nil {
-			if err := insert(ctx.RuntimeContext(), tx, updatedWishlist); err != nil {
-				return err
-			}
+		if err := upsert(ctx.RuntimeContext(), tx, updatedWishlist); err != nil {
+			return err
 		}
 
 		for _, wish := range updatedWishlist.Wishes() {

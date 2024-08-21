@@ -2,6 +2,7 @@ package wishlist
 
 import (
 	"api/internal/model/wishlist"
+
 	"github.com/jackc/pgx/v5"
 )
 
@@ -132,8 +133,8 @@ func scanWishesViewRows(rows pgx.Rows) ([]*wishlist.Wishlist, error) {
 				wishId,
 				*name,
 				*description,
-				*hidden,
 				*fulfilled,
+				*hidden,
 				assignee,
 			),
 		)
