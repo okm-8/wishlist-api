@@ -110,10 +110,6 @@ func (wish *Wish) UpdateDescription(description string) error {
 }
 
 func (wish *Wish) Fulfill() error {
-	if wish.Fulfilled() {
-		return ErrWishAlreadyFulfilled
-	}
-
 	if !wish.Promised() {
 		return ErrorWishNotPromised
 	}
@@ -121,6 +117,10 @@ func (wish *Wish) Fulfill() error {
 	wish.fulfilled = true
 
 	return nil
+}
+
+func (wish *Wish) Rollback() {
+	wish.fulfilled = false
 }
 
 func (wish *Wish) Hide() {
@@ -148,12 +148,12 @@ func (wish *Wish) Promise(assignee *Assignee) error {
 	return nil
 }
 
-func (wish *Wish) Renege() error {
+func (wish *Wish) Renege(assignee *Assignee) error {
 	if wish.Fulfilled() {
 		return ErrWishAlreadyFulfilled
 	}
 
-	if !wish.Promised() {
+	if !wish.Promised() || wish.assignee.Id() != assignee.Id() {
 		return ErrorWishNotPromised
 	}
 

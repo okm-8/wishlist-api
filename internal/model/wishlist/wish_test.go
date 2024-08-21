@@ -72,24 +72,6 @@ func TestWish(t *testing.T) {
 		}
 	})
 
-	t.Run("should fail to fulfill fulfilled wish", func(t *testing.T) {
-		t.Parallel()
-
-		wish := NewWish("wish name", "wish description")
-		_ = wish.Promise(makeAssignee())
-		_ = wish.Fulfill()
-
-		err := wish.Fulfill()
-
-		if err == nil {
-			t.Error("expected error to be returned")
-		}
-
-		if !errors.Is(err, ErrWishAlreadyFulfilled) {
-			t.Errorf("expected error to be %v, got %v", ErrWishAlreadyFulfilled, err)
-		}
-	})
-
 	t.Run("should fail to fulfill un-promised wish", func(t *testing.T) {
 		t.Parallel()
 
@@ -103,6 +85,20 @@ func TestWish(t *testing.T) {
 
 		if !errors.Is(err, ErrorWishNotPromised) {
 			t.Errorf("expected error to be %v, got %v", ErrorWishNotPromised, err)
+		}
+	})
+
+	t.Run("should rollback fulfilled wish", func(t *testing.T) {
+		t.Parallel()
+
+		wish := NewWish("wish name", "wish description")
+		_ = wish.Promise(makeAssignee())
+		_ = wish.Fulfill()
+
+		wish.Rollback()
+
+		if wish.Fulfilled() {
+			t.Error("expected wish to be rolled back")
 		}
 	})
 
@@ -167,9 +163,10 @@ func TestWish(t *testing.T) {
 		t.Parallel()
 
 		wish := NewWish("wish name", "wish description")
-		_ = wish.Promise(makeAssignee())
+		assignee := makeAssignee()
+		_ = wish.Promise(assignee)
 
-		err := wish.Renege()
+		err := wish.Renege(assignee)
 
 		if err != nil {
 			t.Errorf("unexpected error: %v", err)
@@ -185,7 +182,25 @@ func TestWish(t *testing.T) {
 
 		wish := NewWish("wish name", "wish description")
 
-		err := wish.Renege()
+		err := wish.Renege(makeAssignee())
+
+		if err == nil {
+			t.Error("expected error to be returned")
+		}
+
+		if !errors.Is(err, ErrorWishNotPromised) {
+			t.Errorf("expected error to be %v, got %v", ErrorWishNotPromised, err)
+		}
+	})
+
+	t.Run("should fail to renege promised wish with different assignee", func(t *testing.T) {
+		t.Parallel()
+
+		wish := NewWish("wish name", "wish description")
+		assignee := makeAssignee()
+		_ = wish.Promise(assignee)
+
+		err := wish.Renege(makeAssignee())
 
 		if err == nil {
 			t.Error("expected error to be returned")
@@ -200,10 +215,11 @@ func TestWish(t *testing.T) {
 		t.Parallel()
 
 		wish := NewWish("wish name", "wish description")
-		_ = wish.Promise(makeAssignee())
+		assignee := makeAssignee()
+		_ = wish.Promise(assignee)
 		_ = wish.Fulfill()
 
-		err := wish.Renege()
+		err := wish.Renege(assignee)
 
 		if err == nil {
 			t.Error("expected error to be returned")
