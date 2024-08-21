@@ -5,6 +5,7 @@ import (
 	systemContext "api/internal/system/context"
 	"api/internal/system/http/controller/healthcheck"
 	"api/internal/system/http/controller/iam"
+	"api/internal/system/http/controller/wishlist"
 )
 
 func PublicHttp(ctx *systemContext.Context) error {
@@ -13,5 +14,6 @@ func PublicHttp(ctx *systemContext.Context) error {
 		ctx.Config().Http().PublicServer(),
 		healthcheck.Register,
 		iam.RegisterPublic,
+		wishlist.Register,
 	)
 }
