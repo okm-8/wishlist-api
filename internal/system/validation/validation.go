@@ -1,5 +1,7 @@
 package validation
 
+import "fmt"
+
 type Validator func(value any) []error
 
 func All(rules ...Validator) Validator {
@@ -16,19 +18,20 @@ func All(rules ...Validator) Validator {
 	}
 }
 
-func Optional(rules ...Validator) Validator {
-	return func(value any) []error {
-		ptrValue, ok := value.(*any)
+func Optional[T any](rules ...Validator) Validator {
+	var t T
 
-		checkedValue := value
-		if ok {
-			if ptrValue == nil {
-				return nil
-			} else {
-				checkedValue = *ptrValue
-			}
+	return func(value any) []error {
+		typedValue, ok := value.(*T)
+
+		if !ok {
+			return []error{fmt.Errorf("value is not a pointer to %T", t)}
 		}
 
-		return All(rules...)(checkedValue)
+		if typedValue == nil {
+			return nil
+		}
+
+		return All(rules...)(*typedValue)
 	}
 }
