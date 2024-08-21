@@ -1,7 +1,7 @@
 SELECT
     id,
-    name,
     email,
+    name,
     admin,
     password_hash
 FROM users

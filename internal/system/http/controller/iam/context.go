@@ -3,8 +3,10 @@ package iam
 import (
 	"api/internal/model/log"
 	"api/internal/model/session"
+	"api/internal/model/user"
 	"api/internal/service/iam"
 	sessionStore "api/internal/service/integration/pgx/session"
+	userStore "api/internal/service/integration/pgx/user"
 	"api/internal/service/token"
 	systemContext "api/internal/system/context"
 	"api/internal/system/context/service"
@@ -20,6 +22,7 @@ type Context struct {
 	sessionStoreCtx sessionStore.Context
 	tokenCtx        token.Context
 	iamCtx          iam.Context
+	userStoreCtx    userStore.Context
 }
 
 func NewContext(request *http.Request) *Context {
@@ -33,6 +36,7 @@ func NewContext(request *http.Request) *Context {
 		sessionStoreCtx: integration.NewSessionStoreContext(systemCtx),
 		tokenCtx:        service.NewTokenContext(systemCtx),
 		iamCtx:          service.NewIamContext(systemCtx),
+		userStoreCtx:    integration.NewUserStoreContext(systemCtx),
 	}
 }
 
@@ -42,6 +46,20 @@ func (ctx *Context) RequestContext() *httpContext.RequestContext {
 
 func (ctx *Context) IamContext() iam.Context {
 	return ctx.iamCtx
+}
+
+func (ctx *Context) User() *user.User {
+	_user, err := ctx.requestCtx.User()
+
+	if err != nil {
+		panic(err) // This should never happen
+	}
+
+	return _user
+}
+
+func (ctx *Context) UserStoreContext() userStore.Context {
+	return ctx.userStoreCtx
 }
 
 func (ctx *Context) UserSessionToken(_session *session.UserSession) *token.SessionToken {

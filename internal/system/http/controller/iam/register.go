@@ -2,11 +2,18 @@ package iam
 
 import (
 	internalHttp "api/internal/service/integration/http"
+	"api/internal/system/http/middleware"
 	"api/internal/system/http/server"
 	"net/http"
 )
 
 func RegisterCommon(_server *server.Server) {
+	_server.HandleFunc("/iam/me", middleware.AuthorizedOnly(
+		internalHttp.Method(internalHttp.MethodMap{
+			http.MethodGet:   me,
+			http.MethodPatch: updateMe,
+		}),
+	))
 	_server.HandleFunc("/iam/login", internalHttp.Method(internalHttp.MethodMap{
 		http.MethodPost: login,
 	}))

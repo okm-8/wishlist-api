@@ -34,7 +34,7 @@ var (
 
 func insert(ctx context.Context, executor driver.CommandExecutor, user *user.User) error {
 	_, err := executor.Exec(ctx, insertSQL, pgx.NamedArgs{
-		"id":            user.Id().Bytes(),
+		"id":            user.Id().String(),
 		"email":         user.Email(),
 		"name":          user.Name(),
 		"admin":         user.IsAdmin(),
@@ -46,11 +46,11 @@ func insert(ctx context.Context, executor driver.CommandExecutor, user *user.Use
 
 func update(ctx context.Context, executor driver.CommandExecutor, user *user.User) error {
 	_, err := executor.Exec(ctx, updateSQL, pgx.NamedArgs{
-		"id":            user.Id().Bytes(),
-		"email":         user.Email(),
-		"name":          user.Name(),
-		"admin":         user.IsAdmin(),
-		"password_hash": user.PasswordHash(),
+		"id":           user.Id().String(),
+		"email":        user.Email(),
+		"name":         user.Name(),
+		"admin":        user.IsAdmin(),
+		"passwordHash": user.PasswordHash(),
 	})
 
 	return err
@@ -235,14 +235,14 @@ func Update(ctx Context, id user.Id, doUpdate func(user *user.User) (*user.User,
 			return err
 		}
 
-		if _user == nil {
-			return nil
-		}
-
 		_user, err = doUpdate(_user)
 
 		if err != nil {
 			return err
+		}
+
+		if _user == nil {
+			return nil
 		}
 
 		userByEmail, err := selectByEmail(ctx.RuntimeContext(), tx, _user.Email())
