@@ -1,4 +1,4 @@
-package user
+package wishlist
 
 import (
 	"api/internal/model/wishlist"
@@ -22,6 +22,8 @@ var (
 	selectByIdSQL string
 	//go:embed query/select-wish-by-id.sql
 	selectWishByIdSQL string
+	//go:embed query/select-by-wisher-id-active.sql
+	selectByWisherIdActiveSQL string
 )
 
 var (
@@ -67,56 +69,6 @@ func upsertWish(
 	return err
 }
 
-type wishlistRecord struct {
-	Id          wishlist.Id
-	Wisher      *wishlist.Wisher
-	Name        string
-	Description string
-	Hidden      bool
-	Wishes      []*wishlist.Wish
-}
-
-func (record *wishlistRecord) Wishlist() *wishlist.Wishlist {
-	return wishlist.Restore(
-		record.Id,
-		record.Wisher,
-		record.Name,
-		record.Description,
-		record.Hidden,
-		record.Wishes,
-	)
-}
-
-type wishlistCollection struct {
-	recordMap map[wishlist.Id]*wishlistRecord
-}
-
-func (collection *wishlistCollection) add(record *wishlistRecord) {
-	if collection.recordMap == nil {
-		collection.recordMap = make(map[wishlist.Id]*wishlistRecord)
-	}
-
-	if _, ok := collection.recordMap[record.Id]; !ok {
-		collection.recordMap[record.Id] = record
-	}
-}
-
-func (collection *wishlistCollection) addWish(wishlistId wishlist.Id, wish *wishlist.Wish) {
-	if record, ok := collection.recordMap[wishlistId]; ok {
-		record.Wishes = append(record.Wishes, wish)
-	}
-}
-
-func (collection *wishlistCollection) toWishlists() []*wishlist.Wishlist {
-	wishlists := make([]*wishlist.Wishlist, 0, len(collection.recordMap))
-
-	for _, record := range collection.recordMap {
-		wishlists = append(wishlists, record.Wishlist())
-	}
-
-	return wishlists
-}
-
 func selectByWisherId(
 	ctx context.Context,
 	executor driver.QueryExecutor,
@@ -132,104 +84,7 @@ func selectByWisherId(
 
 	defer rows.Close()
 
-	wishlists := &wishlistCollection{}
-	assignees := map[wishlist.AssigneeId]*wishlist.Assignee{
-		wishlist.NilAssigneeId: nil,
-	}
-	var wisher *wishlist.Wisher
-
-	for rows.Next() {
-		var idStr *string
-		var name *string
-		var description *string
-		var hidden *bool
-		var fulfilled *bool
-		var assigneeIdStr *string
-		var assigneeEmail *string
-		var assigneeName *string
-		var wishlistIdStr string
-		var wishlistName string
-		var wishlistDescription string
-		var wishlistHidden bool
-		var wisherEmail string
-		var wisherName string
-
-		err = rows.Scan(
-			&idStr,
-			&name,
-			&description,
-			&hidden,
-			&fulfilled,
-			&assigneeIdStr,
-			&assigneeEmail,
-			&assigneeName,
-			&wishlistIdStr,
-			&wishlistName,
-			&wishlistDescription,
-			&wishlistHidden,
-			&wisherEmail,
-			&wisherName,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if wisher == nil {
-			wisher = wishlist.RestoreWisher(wisherId, wisherName, wisherEmail)
-		}
-
-		var id wishlist.Id
-		id, err = wishlist.ParseId(wishlistIdStr)
-
-		if err != nil {
-			return nil, err
-		}
-
-		wishlists.add(&wishlistRecord{
-			Id:          id,
-			Wisher:      wisher,
-			Name:        wishlistName,
-			Description: wishlistDescription,
-			Hidden:      wishlistHidden,
-		})
-
-		var assignee *wishlist.Assignee
-		var ok bool
-
-		if assigneeIdStr != nil {
-			assigneeId, err := wishlist.ParseAssigneeId(*assigneeIdStr)
-
-			if err != nil {
-				return nil, err
-			}
-
-			if assignee, ok = assignees[assigneeId]; !ok {
-				assignee = wishlist.RestoreAssignee(assigneeId, *assigneeName, *assigneeEmail)
-				assignees[assigneeId] = assignee
-			}
-		}
-
-		if idStr != nil {
-			var wishId wishlist.WishId
-			wishId, err = wishlist.ParseWishId(*idStr)
-
-			if err != nil {
-				return nil, err
-			}
-
-			wishlists.addWish(id, wishlist.RestoreWish(
-				wishId,
-				*name,
-				*description,
-				*fulfilled,
-				*hidden,
-				assignee,
-			))
-		}
-	}
-
-	return wishlists.toWishlists(), nil
+	return scanWishesViewRows(rows)
 }
 
 func selectByAssigneeId(
@@ -251,103 +106,7 @@ func selectByAssigneeId(
 
 	defer rows.Close()
 
-	wishlists := &wishlistCollection{}
-	wishers := map[wishlist.WisherId]*wishlist.Wisher{
-		wishlist.NilWisherId: nil,
-	}
-	var assignee *wishlist.Assignee
-
-	for rows.Next() {
-		var idStr string
-		var name string
-		var description string
-		var hidden bool
-		var fulfilled bool
-		var assigneeEmail string
-		var assigneeName string
-		var wishlistIdStr string
-		var wishlistName string
-		var wishlistDescription string
-		var wishlistHidden bool
-		var wisherIdStr string
-		var wisherEmail string
-		var wisherName string
-
-		err = rows.Scan(
-			&idStr,
-			&name,
-			&description,
-			&hidden,
-			&fulfilled,
-			&assigneeEmail,
-			&assigneeName,
-			&wishlistIdStr,
-			&wishlistName,
-			&wishlistDescription,
-			&wishlistHidden,
-			&wisherIdStr,
-			&wisherEmail,
-			&wisherName,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		var id wishlist.Id
-		id, err = wishlist.ParseId(wishlistIdStr)
-
-		if err != nil {
-			return nil, err
-		}
-
-		var wisher *wishlist.Wisher
-		var ok bool
-
-		if wisherIdStr != "" {
-			var wisherId wishlist.WisherId
-			wisherId, err = wishlist.ParseWisherId(wisherIdStr)
-
-			if err != nil {
-				return nil, err
-			}
-
-			if wisher, ok = wishers[wisherId]; !ok {
-				wisher = wishlist.RestoreWisher(wisherId, wisherName, wisherEmail)
-				wishers[wisherId] = wisher
-			}
-		}
-
-		if assignee == nil {
-			assignee = wishlist.RestoreAssignee(assigneeId, assigneeName, assigneeEmail)
-		}
-
-		wishlists.add(&wishlistRecord{
-			Id:          id,
-			Wisher:      wisher,
-			Name:        wishlistName,
-			Description: wishlistDescription,
-			Hidden:      wishlistHidden,
-		})
-
-		var wishId wishlist.WishId
-		wishId, err = wishlist.ParseWishId(idStr)
-
-		if err != nil {
-			return nil, err
-		}
-
-		wishlists.addWish(id, wishlist.RestoreWish(
-			wishId,
-			name,
-			description,
-			fulfilled,
-			hidden,
-			assignee,
-		))
-	}
-
-	return wishlists.toWishlists(), nil
+	return scanWishesViewRows(rows)
 }
 
 func selectById(
@@ -365,111 +124,17 @@ func selectById(
 
 	defer rows.Close()
 
-	var wisher *wishlist.Wisher
-	var record *wishlistRecord
-	assignees := map[wishlist.AssigneeId]*wishlist.Assignee{
-		wishlist.NilAssigneeId: nil,
+	wishlists, err := scanWishesViewRows(rows)
+
+	if err != nil {
+		return nil, err
 	}
 
-	for rows.Next() {
-		var idStr *string
-		var name *string
-		var description *string
-		var hidden *bool
-		var fulfilled *bool
-		var assigneeIdStr *string
-		var assigneeEmail *string
-		var assigneeName *string
-		var wishlistName string
-		var wishlistDescription string
-		var wishlistHidden bool
-		var wisherIdStr string
-		var wisherEmail string
-		var wisherName string
-
-		err = rows.Scan(
-			&idStr,
-			&name,
-			&description,
-			&hidden,
-			&fulfilled,
-			&assigneeIdStr,
-			&assigneeEmail,
-			&assigneeName,
-			&wishlistName,
-			&wishlistDescription,
-			&wishlistHidden,
-			&wisherIdStr,
-			&wisherEmail,
-			&wisherName,
-		)
-
-		if err != nil {
-			return nil, err
-		}
-
-		if wisher == nil {
-			var wisherId wishlist.WisherId
-			wisherId, err = wishlist.ParseWisherId(wisherIdStr)
-
-			wisher = wishlist.RestoreWisher(
-				wisherId,
-				wisherName,
-				wisherEmail,
-			)
-		}
-
-		if record == nil {
-			record = &wishlistRecord{
-				Id:          id,
-				Wisher:      wisher,
-				Name:        wishlistName,
-				Description: wishlistDescription,
-				Hidden:      wishlistHidden,
-			}
-		}
-
-		var assignee *wishlist.Assignee
-		var ok bool
-
-		if assigneeIdStr != nil {
-			var assigneeId wishlist.AssigneeId
-			assigneeId, err = wishlist.ParseAssigneeId(*assigneeIdStr)
-
-			if err != nil {
-				return nil, err
-			}
-
-			if assignee, ok = assignees[assigneeId]; !ok {
-				assignee = wishlist.RestoreAssignee(assigneeId, *assigneeName, *assigneeEmail)
-				assignees[assigneeId] = assignee
-			}
-		}
-
-		if idStr != nil {
-			var wishId wishlist.WishId
-			wishId, err = wishlist.ParseWishId(*idStr)
-
-			if err != nil {
-				return nil, err
-			}
-
-			record.Wishes = append(record.Wishes, wishlist.RestoreWish(
-				wishId,
-				*name,
-				*description,
-				*fulfilled,
-				*hidden,
-				assignee,
-			))
-		}
-	}
-
-	if record == nil {
+	if len(wishlists) == 0 {
 		return nil, nil
 	}
 
-	return record.Wishlist(), nil
+	return wishlists[0], nil
 }
 
 func selectWishById(
@@ -487,91 +152,35 @@ func selectWishById(
 
 	defer rows.Close()
 
-	if !rows.Next() {
+	wishlists, err := scanWishesViewRows(rows)
+
+	if err != nil {
+		return nil, err
+	}
+
+	if len(wishlists) == 0 || len(wishlists[0].Wishes()) == 0 {
 		return nil, nil
 	}
 
-	var name string
-	var description string
-	var hidden bool
-	var fulfilled bool
-	var assigneeIdStr *string
-	var assigneeEmail *string
-	var assigneeName *string
-	var wishlistIdStr string
-	var wishlistName string
-	var wishlistDescription string
-	var wisherIdStr string
-	var wisherEmail string
-	var wisherName string
+	return wishlists[0].Wishes()[0], nil
+}
 
-	err = rows.Scan(
-		&name,
-		&description,
-		&hidden,
-		&fulfilled,
-		&assigneeIdStr,
-		&assigneeEmail,
-		&assigneeName,
-		&wishlistIdStr,
-		&wishlistName,
-		&wishlistDescription,
-		&wisherIdStr,
-		&wisherEmail,
-		&wisherName,
-	)
+func selectByWisherIdActive(
+	ctx context.Context,
+	executor driver.QueryExecutor,
+	wisherId wishlist.WisherId,
+) ([]*wishlist.Wishlist, error) {
+	rows, err := executor.Query(ctx, selectByWisherIdActiveSQL, pgx.NamedArgs{
+		"wisherId": wisherId.String(),
+	})
 
 	if err != nil {
 		return nil, err
 	}
 
-	wisherId, err := wishlist.ParseWisherId(wisherIdStr)
+	defer rows.Close()
 
-	if err != nil {
-		return nil, err
-	}
-
-	wisher := wishlist.RestoreWisher(wisherId, wisherName, wisherEmail)
-
-	var assignee *wishlist.Assignee
-
-	if assigneeIdStr != nil {
-		var assigneeId wishlist.AssigneeId
-		assigneeId, err = wishlist.ParseAssigneeId(*assigneeIdStr)
-
-		if err != nil {
-			return nil, err
-		}
-
-		assignee = wishlist.RestoreAssignee(assigneeId, *assigneeName, *assigneeEmail)
-	}
-
-	wish := wishlist.RestoreWish(
-		id,
-		name,
-		description,
-		fulfilled,
-		hidden,
-		assignee,
-	)
-
-	wishlistId, err := wishlist.ParseId(wishlistIdStr)
-
-	if err != nil {
-		return nil, err
-	}
-
-	// set wishlist to wish
-	_ = wishlist.Restore(
-		wishlistId,
-		wisher,
-		wishlistName,
-		wishlistDescription,
-		hidden,
-		[]*wishlist.Wish{wish},
-	)
-
-	return wish, nil
+	return scanWishesViewRows(rows)
 }
 
 func Store(ctx Context, wishlist *wishlist.Wishlist) error {
@@ -687,6 +296,18 @@ func GetByAssigneeId(ctx Context, assigneeId wishlist.AssigneeId) ([]*wishlist.W
 
 	err = driver.Session(ctx.DriverContext(), func(conn *pgx.Conn) error {
 		wishlists, err = selectByAssigneeId(ctx.RuntimeContext(), conn, assigneeId)
+		return err
+	})
+
+	return wishlists, err
+}
+
+func GetByWisherIdActive(ctx Context, wisherId wishlist.WisherId) ([]*wishlist.Wishlist, error) {
+	var wishlists []*wishlist.Wishlist
+	var err error
+
+	err = driver.Session(ctx.DriverContext(), func(conn *pgx.Conn) error {
+		wishlists, err = selectByWisherIdActive(ctx.RuntimeContext(), conn, wisherId)
 		return err
 	})
 

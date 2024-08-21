@@ -7,6 +7,7 @@ SELECT
     assignee_id,
     assignee_email,
     assignee_name,
+    wishlist_id,
     wishlist_name,
     wishlist_description,
     wishlist_hidden,

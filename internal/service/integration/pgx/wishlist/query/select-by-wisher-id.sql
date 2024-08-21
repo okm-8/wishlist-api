@@ -11,6 +11,7 @@ SELECT
     wishlist_name,
     wishlist_description,
     wishlist_hidden,
+    wisher_id,
     wisher_email,
     wisher_name
 FROM wishes_view

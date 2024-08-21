@@ -15,5 +15,8 @@ SELECT
     wisher_email,
     wisher_name
 FROM wishes_view
-WHERE assignee_id = @assigneeId
-ORDER BY wisher_id, wishlist_created_at DESC
+WHERE wisher_id = @wisherId 
+    AND hidden = FALSE 
+    AND wishlist_hidden = FALSE 
+    AND fulfilled = FALSE
+ORDER BY wishlist_created_at DESC

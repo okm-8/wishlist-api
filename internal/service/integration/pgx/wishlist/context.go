@@ -1,4 +1,4 @@
-package user
+package wishlist
 
 import (
 	"api/internal/service/integration/pgx/driver"
