@@ -228,7 +228,7 @@ func Update(
 			return ErrorNilWishlistReturned
 		}
 
-		if err := upsert(ctx.RuntimeContext(), tx, updatedWishlist); err != nil {
+		if err = upsert(ctx.RuntimeContext(), tx, updatedWishlist); err != nil {
 			return err
 		}
 
