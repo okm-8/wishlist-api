@@ -5,8 +5,7 @@ Second Proof of Concept for Obelus One
 Build local image and run release in local k8s
 
 ```bash
-make docker-build
-make helm-install
+make docker-build helm-install
 ```
 
 ## Public server
@@ -35,4 +34,10 @@ Forward postgres from port 8002
 
 ```bash
 make kube-forward-redis
+```
+
+## Stop
+
+```bash
+make helm-delete
 ```

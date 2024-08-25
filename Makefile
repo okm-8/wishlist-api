@@ -39,3 +39,6 @@ kube-forward-postgres:
 
 kube-forward-redis:
 	kubectl port-forward --namespace wishlist service/redis 8002:6379
+
+kube-exec-cli:
+	kubectl exec -it --namespace wishlist --container api deployment/wishlist-api -- /wishlist-api $(ARGS)
