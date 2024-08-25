@@ -6,7 +6,7 @@ services:
     image: ${IMAGE:-wishlist-api}
     profiles:
       - full
-      - cli
+      - api
     build:
         context: .
         dockerfile: Dockerfile
