@@ -54,6 +54,13 @@ func Parse(ctx Context, token string) (*Token, error) {
 	}
 
 	payloadSize := binary.BigEndian.Uint32(tokenBytes[:4])
+
+	if payloadSize+4 > uint32(tokenBytesLen) || payloadSize < 8 {
+		ctx.Log(log.Debug, "token payload size is invalid", log.NewLabel("payloadSize", payloadSize), log.NewLabel("tokenBytesLen", tokenBytesLen))
+
+		return nil, ErrInvalid
+	}
+
 	hash := tokenBytes[payloadSize+4:]
 	fullPayload := tokenBytes[:payloadSize+4]
 
