@@ -56,7 +56,7 @@ func addWish(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	var updatedWishlist *wishlist.Wishlist
+	var newWish *wishlist.Wish
 	err = wishlistStore.Update(ctx.WishlistStoreContext(), wishlistId, func(_wishlist *wishlist.Wishlist) (*wishlist.Wishlist, error) {
 		if _wishlist == nil {
 			internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wishlist not found", nil, nil)
@@ -70,11 +70,9 @@ func addWish(writer http.ResponseWriter, request *http.Request) {
 			return nil, ErrWishlistUpdateFailed
 		}
 
-		updatedWishlist = _wishlist
+		newWish = _wishlist.AddWish(_addWishRequest.Name, _addWishRequest.Description)
 
-		_ = updatedWishlist.AddWish(_addWishRequest.Name, _addWishRequest.Description)
-
-		return updatedWishlist, nil
+		return _wishlist, nil
 	})
 
 	if err != nil {
@@ -85,5 +83,5 @@ func addWish(writer http.ResponseWriter, request *http.Request) {
 		return
 	}
 
-	internalHttp.WriteDataResponse(ctx, writer, http.StatusOK, serializeWishlist(updatedWishlist), nil)
+	internalHttp.WriteDataResponse(ctx, writer, http.StatusOK, serializeWish(newWish), nil)
 }
