@@ -117,9 +117,7 @@ func updateWish(writer http.ResponseWriter, request *http.Request) {
 					updatedWish.Promise(wisherAsAssignee)
 				}
 
-				err := updatedWish.Fulfill()
-
-				if err != nil {
+				if err = updatedWish.Fulfill(); err != nil {
 					return nil, err
 				}
 			} else {
