@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: wishlist-api-env
+data: 
+  MIGRATIONS_PATH: {{ .Values.env.MIGRATIONS_PATH | quote }}
+  LOG_LEVEL: {{ .Values.env.LOG_LEVEL | quote }}
+  LOG_OUTPUT: {{ .Values.env.LOG_OUTPUT | quote }}
+  COLORED_LOG: {{ .Values.env.COLORED_LOG | quote }}

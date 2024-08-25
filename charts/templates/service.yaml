@@ -1,0 +1,68 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: wishlist-api-public
+spec:
+  ports:
+  - port: 8080
+    targetPort: 8080
+  selector:
+    app: wishlist-api
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wishlist-api-private
+spec:
+  ports:
+  - port: 8081
+    targetPort: 8081
+  selector:
+    app: wishlist-api
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wishlist-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: wishlist-api
+  template:
+    metadata:
+      labels:
+        app: wishlist-api
+        version: {{ .Values.version | quote }}
+        revision: {{ .Release.Revision | quote }}
+    spec:
+      imagePullSecrets:
+      - name: gl-registry-credentials
+      initContainers:
+      - name: migrations
+        image: "{{ .Values.registry }}:{{ .Values.version }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        args: ["migrations", "execute", "-y"]
+        envFrom:
+        - configMapRef:
+            name: wishlist-api-env
+        - secretRef:
+            name: wishlist-api-secrets
+      containers:
+      - name: api
+        image: "{{ .Values.registry }}:{{ .Values.version }}"
+        imagePullPolicy: {{ .Values.imagePullPolicy }}
+        args: ["system", "core"]
+        ports:
+        - containerPort: 8080
+        - containerPort: 8081
+        env:
+        - name: PUBLIC_ADDRESS
+          value: ":8080"
+        - name: PRIVATE_ADDRESS
+          value: ":8081"
+        envFrom:
+        - configMapRef:
+            name: wishlist-api-env
+        - secretRef:
+            name: wishlist-api-secrets

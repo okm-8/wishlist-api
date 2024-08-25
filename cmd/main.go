@@ -6,8 +6,10 @@ import (
 	"api/cmd/user"
 	"api/internal/model/log"
 	systemContext "api/internal/system/context"
-	"github.com/spf13/cobra"
+	"os"
 	"sync"
+
+	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
@@ -42,5 +44,7 @@ func main() {
 
 	if err := rootCmd.ExecuteContext(ctx); err != nil {
 		ctx.Log(log.Error, err.Error())
+
+		os.Exit(1)
 	}
 }

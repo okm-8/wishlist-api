@@ -18,3 +18,12 @@ run-system:
 
 run-cli:
 	go run ./cmd $(cmd)
+
+build-image:
+	docker build -t wishlist-api:latest .
+
+deploy-helm:
+	helm upgrade --install --wait --namespace wishlist --create-namespace wishlist-api ./charts
+
+delete-helm:
+	helm delete --namespace wishlist wishlist-api

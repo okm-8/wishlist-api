@@ -1,0 +1,23 @@
+postgres:
+  install: true
+
+redis:
+  install: true
+
+env:
+  APP_SECRET: "SomeSecretKey"
+  POSTGRES_DSN: "postgres://postgres:postgres@postgres:5432/postgres"
+  REDIS_DSN: "redis://redis:6379"
+  MIGRATIONS_PATH: "migrations"
+  LOG_LEVEL: "debug"
+  LOG_OUTPUT: "stdout"
+  COLORED_LOG: "true"
+
+registry: "wishlist-api"
+version: "latest"
+imagePullPolicy: "Never"
+dockerconfigjson: >-
+  {
+    "auths": {
+    }
+  }

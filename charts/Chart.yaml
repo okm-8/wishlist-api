@@ -1,0 +1,10 @@
+apiVersion: v2
+name: wislist-api
+version: 1.0.0
+dependencies:
+  - name: postgres
+    condition: postgres.install
+    version: 1.0.0
+  - name: redis
+    condition: redis.install
+    version: 1.0.0
