@@ -4,6 +4,9 @@ volumes:
 services:
   api:
     image: ${IMAGE:-wishlist-api}
+    profiles:
+      - full
+      - cli
     build:
         context: .
         dockerfile: Dockerfile
@@ -22,6 +25,9 @@ services:
       - redis
   cli:
     image: ${IMAGE:-wishlist-api}
+    profiles:
+      - full
+      - cli
     build:
         context: .
         dockerfile: Dockerfile
