@@ -19,11 +19,23 @@ run-system:
 run-cli:
 	go run ./cmd $(cmd)
 
-build-image:
+docker-build:
 	docker build -t wishlist-api:latest .
 
-deploy-helm:
+helm-install:
 	helm upgrade --install --wait --namespace wishlist --create-namespace wishlist-api ./charts
 
-delete-helm:
+helm-delete:
 	helm delete --namespace wishlist wishlist-api
+
+kube-forward-private:
+	kubectl port-forward --namespace wishlist service/wishlist-api-private 8081:8081 
+
+kube-forward-public:
+	kubectl port-forward --namespace wishlist service/wishlist-api-public 8080:8080
+
+kube-forward-postgres:
+	kubectl port-forward --namespace wishlist service/postgres 8001:5432
+
+kube-forward-redis:
+	kubectl port-forward --namespace wishlist service/redis 8002:6379
