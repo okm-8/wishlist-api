@@ -109,8 +109,8 @@ func scanWishesViewRows(rows pgx.Rows) ([]*wishlist.Wishlist, error) {
 		if !ok {
 			wisher = wishlist.RestoreWisher(
 				wisherId,
-				wisherEmail,
 				wisherName,
+				wisherEmail,
 			)
 
 			wishers[wisherId] = wisher
