@@ -64,13 +64,7 @@ func update(writer http.ResponseWriter, request *http.Request) {
 	var updatedWishlist *wishlist.Wishlist
 
 	err = wishlistStore.Update(ctx.WishlistStoreContext(), wishlistId, func(_wishlist *wishlist.Wishlist) (*wishlist.Wishlist, error) {
-		if _wishlist == nil {
-			internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wishlist not found", nil, nil)
-
-			return nil, ErrWishlistUpdateFailed
-		}
-
-		if _wishlist.Wisher().Id() != ctx.WisherFromUser().Id() {
+		if _wishlist == nil || _wishlist.Wisher().Id() != ctx.WisherFromUser().Id() {
 			internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wishlist not found", nil, nil)
 
 			return nil, ErrWishlistUpdateFailed

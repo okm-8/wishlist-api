@@ -36,6 +36,15 @@ var ErrWishUpdateFailed = errors.New("failed to update wish")
 
 func updateWish(writer http.ResponseWriter, request *http.Request) {
 	ctx := NewContext(request)
+
+	wishlistId, err := ctx.WishlistId()
+
+	if err != nil {
+		ctx.Log(log.Debug, "failed to parse id", log.NewLabel("error", err.Error()))
+
+		internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wishlist not found", nil, nil)
+	}
+
 	wishId, err := ctx.WishId()
 
 	if err != nil {
@@ -67,13 +76,7 @@ func updateWish(writer http.ResponseWriter, request *http.Request) {
 	var updatedWish *wishlist.Wish
 	wisher := ctx.WisherFromUser()
 	err = wishlistStore.UpdateWish(ctx.WishlistStoreContext(), wishId, func(_wish *wishlist.Wish) (*wishlist.Wish, error) {
-		if _wish == nil {
-			internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wish not found", nil, nil)
-
-			return nil, ErrWishUpdateFailed
-		}
-
-		if _wish.Wishlist().Wisher().Id() != wisher.Id() {
+		if _wish == nil || _wish.Wishlist().Wisher().Id() != wisher.Id() || _wish.Wishlist().Id() != wishlistId {
 			internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wish not found", nil, nil)
 
 			return nil, ErrWishUpdateFailed

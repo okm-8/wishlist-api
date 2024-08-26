@@ -12,7 +12,7 @@ type ListItemResponse struct {
 
 func list(writer http.ResponseWriter, request *http.Request) {
 	ctx := NewContext(request)
-	user := ctx.User()
+	user := ctx.MustUser()
 
 	wishlists, err := wishlistStore.GetByWisherId(ctx.WishlistStoreContext(), wishlist.WisherId(user.Id()))
 

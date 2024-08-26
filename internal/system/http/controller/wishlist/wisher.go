@@ -1,6 +1,7 @@
 package wishlist
 
 import (
+	"api/internal/model/log"
 	"api/internal/model/wishlist"
 	internalHttp "api/internal/service/integration/http"
 	wishlistStore "api/internal/service/integration/pgx/wishlist"
@@ -10,7 +11,13 @@ import (
 
 func wishers(writer http.ResponseWriter, request *http.Request) {
 	ctx := NewContext(request)
-	currentWisher := ctx.WisherFromUser()
+
+	var currentWisher *wishlist.Wisher
+
+	_, err := ctx.User()
+	if err == nil {
+		currentWisher = ctx.WisherFromUser()
+	}
 
 	wishers, err := wishlistStore.GetWishers(ctx.WishlistStoreContext())
 	if err != nil {
@@ -22,7 +29,7 @@ func wishers(writer http.ResponseWriter, request *http.Request) {
 	filteredWishers := make([]*wishlist.Wisher, 0, len(wishers))
 
 	for _, wisher := range wishers {
-		if wisher.Id() != currentWisher.Id() {
+		if currentWisher == nil || wisher.Id() != currentWisher.Id() {
 			filteredWishers = append(filteredWishers, wisher)
 		}
 	}
@@ -35,6 +42,8 @@ func wisherWislists(writer http.ResponseWriter, request *http.Request) {
 
 	wisherId, err := ctx.WisherId()
 	if err != nil {
+		ctx.Log(log.Debug, "failed to parse wisher id", log.NewLabel("error", err.Error()))
+
 		internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wisher not found", nil, nil)
 
 		return
@@ -55,16 +64,22 @@ func promiseWish(writer http.ResponseWriter, request *http.Request) {
 
 	wisherId, err := ctx.WisherId()
 	if err != nil {
+		ctx.Log(log.Debug, "failed to parse wisher id", log.NewLabel("error", err.Error()))
+
 		internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wisher not found", nil, nil)
 	}
 
 	wishlistId, err := ctx.WishlistId()
 	if err != nil {
+		ctx.Log(log.Debug, "failed to parse wishlist id", log.NewLabel("error", err.Error()))
+
 		internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wishlist not found", nil, nil)
 	}
 
 	wishId, err := ctx.WishId()
 	if err != nil {
+		ctx.Log(log.Debug, "failed to parse wish id", log.NewLabel("error", err.Error()))
+
 		internalHttp.WriteErrorResponse(ctx, writer, http.StatusNotFound, "wish not found", nil, nil)
 
 		return

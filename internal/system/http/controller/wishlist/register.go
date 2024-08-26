@@ -34,16 +34,12 @@ func Register(_server *server.Server) {
 			http.MethodGet: listPromises,
 		}),
 	))
-	_server.HandleFunc("/wisher", middleware.AuthorizedOnly(
-		internalHttp.Method(internalHttp.MethodMap{
-			http.MethodGet: wishers,
-		}),
-	))
-	_server.HandleFunc("/wisher/{wisherId}/wishlist", middleware.AuthorizedOnly(
-		internalHttp.Method(internalHttp.MethodMap{
-			http.MethodGet: wisherWislists,
-		}),
-	))
+	_server.HandleFunc("/wisher", internalHttp.Method(internalHttp.MethodMap{
+		http.MethodGet: wishers,
+	}))
+	_server.HandleFunc("/wisher/{wisherId}/wishlist", internalHttp.Method(internalHttp.MethodMap{
+		http.MethodGet: wisherWislists,
+	}))
 	_server.HandleFunc("/wisher/{wisherId}/wishlist/{wishlistId}/wish/{wishId}/promise", middleware.AuthorizedOnly(
 		internalHttp.Method(internalHttp.MethodMap{
 			http.MethodPost:   promiseWish,

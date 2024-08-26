@@ -9,7 +9,7 @@ import (
 
 func listPromises(writer http.ResponseWriter, request *http.Request) {
 	ctx := NewContext(request)
-	user := ctx.User()
+	user := ctx.MustUser()
 
 	wishlists, err := wishlistStore.GetByAssigneeId(ctx.WishlistStoreContext(), wishlist.AssigneeId(user.Id()))
 
