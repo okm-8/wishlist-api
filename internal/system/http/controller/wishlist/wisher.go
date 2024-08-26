@@ -37,7 +37,7 @@ func wishers(writer http.ResponseWriter, request *http.Request) {
 	internalHttp.WriteDataResponse(ctx, writer, http.StatusOK, serializeWishers(filteredWishers), nil)
 }
 
-func wisherWislists(writer http.ResponseWriter, request *http.Request) {
+func wisherWishlists(writer http.ResponseWriter, request *http.Request) {
 	ctx := NewContext(request)
 
 	wisherId, err := ctx.WisherId()

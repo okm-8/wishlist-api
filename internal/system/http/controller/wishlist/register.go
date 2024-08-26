@@ -38,7 +38,7 @@ func Register(_server *server.Server) {
 		http.MethodGet: wishers,
 	}))
 	_server.HandleFunc("/wisher/{wisherId}/wishlist", internalHttp.Method(internalHttp.MethodMap{
-		http.MethodGet: wisherWislists,
+		http.MethodGet: wisherWishlists,
 	}))
 	_server.HandleFunc("/wisher/{wisherId}/wishlist/{wishlistId}/wish/{wishId}/promise", middleware.AuthorizedOnly(
 		internalHttp.Method(internalHttp.MethodMap{

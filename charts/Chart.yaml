@@ -1,5 +1,5 @@
 apiVersion: v2
-name: wislist-api
+name: wishlist-api
 version: 1.0.0
 dependencies:
   - name: postgres
