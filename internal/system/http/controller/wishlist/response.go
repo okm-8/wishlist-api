@@ -85,3 +85,13 @@ func serializeWishLists(wishlists []*wishlist.Wishlist) []wishList {
 
 	return result
 }
+
+func serializeWishers(wishers []*wishlist.Wisher) []wisher {
+	result := make([]wisher, len(wishers))
+
+	for index, _wisher := range wishers {
+		result[index] = serializeWisher(_wisher)
+	}
+
+	return result
+}

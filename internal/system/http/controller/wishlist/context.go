@@ -42,6 +42,10 @@ func (ctx *Context) WishId() (wishlist.WishId, error) {
 	return wishlist.ParseWishId(ctx.request.PathValue("wishId"))
 }
 
+func (ctx *Context) WisherId() (wishlist.WisherId, error) {
+	return wishlist.ParseWisherId(ctx.request.PathValue("wisherId"))
+}
+
 func (ctx *Context) User() *user.User {
 	_user, err := ctx.requestCtx.User()
 
@@ -57,6 +61,16 @@ func (ctx *Context) WisherFromUser() *wishlist.Wisher {
 
 	return wishlist.RestoreWisher(
 		wishlist.WisherId(_user.Id()),
+		_user.Name(),
+		_user.Email(),
+	)
+}
+
+func (ctx *Context) AssigneeFromUser() *wishlist.Assignee {
+	_user := ctx.User()
+
+	return wishlist.RestoreAssignee(
+		wishlist.AssigneeId(_user.Id()),
 		_user.Name(),
 		_user.Email(),
 	)

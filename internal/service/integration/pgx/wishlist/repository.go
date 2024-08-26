@@ -25,6 +25,8 @@ var (
 	selectWishByIdSQL string
 	//go:embed query/select-by-wisher-id-active.sql
 	selectByWisherIdActiveSQL string
+	//go:embed query/select-wishers.sql
+	selectWishersSQL string
 )
 
 var (
@@ -184,6 +186,18 @@ func selectByWisherIdActive(
 	return scanWishesViewRows(rows)
 }
 
+func selectWishers(ctx context.Context, executor driver.QueryExecutor) ([]*wishlist.Wisher, error) {
+	rows, err := executor.Query(ctx, selectWishersSQL)
+
+	if err != nil {
+		return nil, err
+	}
+
+	defer rows.Close()
+
+	return scanWishers(rows)
+}
+
 func Store(ctx Context, wishlist *wishlist.Wishlist) error {
 	return driver.Transaction(ctx.DriverContext(), func(tx pgx.Tx) error {
 		if err := upsert(ctx.RuntimeContext(), tx, wishlist); err != nil {
@@ -311,4 +325,16 @@ func GetByWisherIdActive(ctx Context, wisherId wishlist.WisherId) ([]*wishlist.W
 	})
 
 	return wishlists, err
+}
+
+func GetWishers(ctx Context) ([]*wishlist.Wisher, error) {
+	var wishers []*wishlist.Wisher
+	var err error
+
+	err = driver.Session(ctx.DriverContext(), func(conn *pgx.Conn) error {
+		wishers, err = selectWishers(ctx.RuntimeContext(), conn)
+		return err
+	})
+
+	return wishers, err
 }

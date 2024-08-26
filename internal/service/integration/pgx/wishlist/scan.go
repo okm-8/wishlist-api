@@ -15,6 +15,40 @@ type wishlistRecord struct {
 	Wishes      []*wishlist.Wish
 }
 
+func scanWishers(rows pgx.Rows) ([]*wishlist.Wisher, error) {
+	wishers := make([]*wishlist.Wisher, 0)
+
+	var err error
+	var wisherIdStr string
+	var email string
+	var name string
+
+	var wisherId wishlist.WisherId
+
+	for rows.Next() {
+		rows.Scan(
+			&wisherIdStr,
+			&email,
+			&name,
+		)
+
+		if wisherId, err = wishlist.ParseWisherId(wisherIdStr); err != nil {
+			return nil, err
+		}
+
+		wishers = append(
+			wishers,
+			wishlist.RestoreWisher(
+				wisherId,
+				name,
+				email,
+			),
+		)
+	}
+
+	return wishers, nil
+}
+
 func scanWishesViewRows(rows pgx.Rows) ([]*wishlist.Wishlist, error) {
 	wishers := make(map[wishlist.WisherId]*wishlist.Wisher)
 	assignees := make(map[wishlist.AssigneeId]*wishlist.Assignee)
