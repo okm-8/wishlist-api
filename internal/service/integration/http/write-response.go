@@ -25,6 +25,10 @@ func writeHeaders(writer http.ResponseWriter, code int, headers map[string]strin
 }
 
 func writeBody(ctx Context, writer http.ResponseWriter, body []byte) {
+	if len(body) > 0 && body[len(body)-1] != '\n' {
+		body = append(body, '\n')
+	}
+
 	_, err := writer.Write(body)
 
 	if err != nil {
