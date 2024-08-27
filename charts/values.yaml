@@ -15,9 +15,9 @@ env:
 
 registry: "wishlist-api"
 version: "latest"
+build: "runtime"
 imagePullPolicy: "Never"
-dockerconfigjson: >-
-  {
-    "auths": {
-    }
-  }
+
+gitlab:
+  user: ~
+  password: ~

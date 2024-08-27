@@ -1,0 +1,118 @@
+stages:
+- build
+- test
+- deploy
+- delete
+
+variables:
+  VERSION: $CI_COMMIT_REF_NAME
+  BUILD: $CI_COMMIT_SHORT_SHA
+  APP_REGISTRY: $CI_REGISTRY_IMAGE
+
+.rules:
+  release:
+    - if: '$CI_COMMIT_REF_NAME =~ /^v\d+\.\d+\.\d+(-.*)?$/ && $CI_COMMIT_BRANCH == "master"'
+  master:
+    - if: '$CI_COMMIT_BRANCH == "master"'
+  stage:
+    - if: '$CI_COMMIT_BRANCH =~ /^stage(-\d+)?$/'
+
+.all-rules: &all-rules
+  rules:
+    - !reference [.rules, release]
+    - !reference [.rules, master]
+    - !reference [.rules, stage]
+
+build:
+  <<: *all-rules
+  stage: build
+  when: always
+  tags:
+  - n3u
+  - build
+  - docker
+  before_script:
+  - docker image prune -af --filter "until=24h"
+  script:
+  - docker build -t $APP_REGISTRY:$VERSION.$BUILD .
+  - echo $CI_JOB_TOKEN | docker login -u gitlab-ci-token --password-stdin registry.gitlab.com
+  - "docker push $APP_REGISTRY:$VERSION.$BUILD"
+  after_script:
+  - docker logout registry.gitlab.com
+  - "docker image rm $APP_REGISTRY:$VERSION.$BUILD"
+  - docker image prune -af --filter "until=24h"
+
+test:
+  <<: *all-rules
+  stage: test
+  when: on_success
+  dependencies:
+    - build
+  tags:
+  - n3u
+  - test
+  - docker
+  before_script:
+  - docker build -t wishlist-api:test --target test .
+  script:
+  - docker run --rm wishlist-api:test
+  after_script:
+  - docker image rm wishlist-api:test
+
+.deploy: &deploy
+  stage: deploy
+  when: manual
+  dependencies:
+    - build
+  variables:
+    NAMESPACE: ""
+    GITLAB_USER: "neudp"
+    GITLAB_TOKEN: $NEUDP_TOKEN
+  script:
+  - >-
+    helm upgrade --install $CI_PROJECT_DIR/charts --wait
+    --namespace $NAMESPACE --create-namespace
+    --values $CI_PROJECT_DIR/charts/values.yaml
+    --values $CI_PROJECT_DIR/charts/values.overrides.yaml
+    --set "gitlab.user=$GITLAB_USER
+    --set "gitlab.password=$GITLAB_TOKEN
+    --set "registry=$APP_REGISTRY"
+    --set "version=$VERSION"
+    --set "imagePullPolicy=Always"
+    --set "build=$BUILD"
+
+.deploy_stage: &deploy_stage
+  <<: *deploy
+  tags:
+    - n3u
+    - stage
+    - helm
+
+.delete: &delete
+  tags:
+    - n3u
+    - stage
+    - helm
+  stage: delete
+  when: manual
+  variables:
+    DEPLOYMENT_NAME: ""
+  script:
+    - helm delete $DEPLOYMENT_NAME
+
+stage-deploy:
+  <<: *deploy_stage
+  rules:
+    - !reference [.rules, stage]
+  when: on_success
+  variables:
+    NAMESPACE: st-wishlist-api
+  before_script:
+    - cp $STAGE_0_VALUES_OVERRIDES_YAML $CI_PROJECT_DIR/charts/values.overrides.yaml
+
+stage-delete:
+  <<: *delete
+  rules:
+    - !reference [.rules, stage]
+  variables:
+    NAMESPACE: st-wishlist-api

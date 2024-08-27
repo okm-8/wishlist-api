@@ -34,6 +34,7 @@ spec:
       labels:
         app: wishlist-api
         version: {{ .Values.version | quote }}
+        build: {{ .Values.build | quote }}
         revision: {{ .Release.Revision | quote }}
     spec:
       imagePullSecrets:
