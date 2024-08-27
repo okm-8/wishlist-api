@@ -31,7 +31,10 @@ variables:
   - !reference [.rules, mr-stage]
 
 build:
-  <<: *all-rules
+  rules:
+  - !reference [.rules, release]
+  - !reference [.rules, master]
+  - !reference [.rules, stage]
   stage: build
   when: always
   tags:
