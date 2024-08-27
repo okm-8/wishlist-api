@@ -76,16 +76,14 @@ test:
   - build
   variables:
     NAMESPACE: ""
-    GITLAB_USER: "neudp"
-    GITLAB_TOKEN: $NEUDP_TOKEN
   script:
   - >-
     helm upgrade --install "$NAMESPACE-api" $CI_PROJECT_DIR/charts --wait
     --namespace $NAMESPACE --create-namespace
     --values $CI_PROJECT_DIR/charts/values.yaml
     --values $CI_PROJECT_DIR/charts/values.overrides.yaml
-    --set "gitlab.user=$GITLAB_USER"
-    --set "gitlab.password=$GITLAB_TOKEN"
+    --set "gitlab.user=neudp"
+    --set "gitlab.password=$NEUDP_TOKEN"
     --set "registry=$APP_REGISTRY"
     --set "version=$VERSION"
     --set "imagePullPolicy=Always"
