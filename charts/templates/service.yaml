@@ -41,7 +41,7 @@ spec:
       - name: gl-registry-credentials
       initContainers:
       - name: migrations
-        image: "{{ .Values.registry }}:{{ .Values.version }}"
+        image: "{{ .Values.registry }}:{{ .Values.version }}.{{ .Values.build }}"
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         args: ["migrations", "execute", "-y"]
         envFrom:
