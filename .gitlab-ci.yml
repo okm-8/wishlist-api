@@ -14,14 +14,21 @@ variables:
   - if: '$CI_COMMIT_REF_NAME =~ /^v\d+\.\d+\.\d+(-.*)?$/ && $CI_COMMIT_BRANCH == "master"'
   master:
   - if: '$CI_COMMIT_BRANCH == "master"'
+  mr-master:
+  - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "master"'
   stage:
   - if: '$CI_COMMIT_BRANCH == "stage"'
+  mr-stage:
+  - if: '$CI_PIPELINE_SOURCE == "merge_request_event" && $CI_MERGE_REQUEST_TARGET_BRANCH_NAME == "stage"'
+  
 
 .all-rules: &all-rules
   rules:
   - !reference [.rules, release]
   - !reference [.rules, master]
+  - !reference [.rules, mr-master]
   - !reference [.rules, stage]
+  - !reference [.rules, mr-stage]
 
 build:
   <<: *all-rules
@@ -74,8 +81,8 @@ test:
     --namespace $NAMESPACE --create-namespace
     --values $CI_PROJECT_DIR/charts/values.yaml
     --values $CI_PROJECT_DIR/charts/values.overrides.yaml
-    --set "gitlab.user=$GITLAB_USER
-    --set "gitlab.password=$GITLAB_TOKEN
+    --set "gitlab.user=$GITLAB_USER"
+    --set "gitlab.password=$GITLAB_TOKEN"
     --set "registry=$APP_REGISTRY"
     --set "version=$VERSION"
     --set "imagePullPolicy=Always"
@@ -96,9 +103,9 @@ test:
   stage: delete
   when: manual
   variables:
-    DEPLOYMENT_NAME: ""
+    NAMESPACE: ""
   script:
-  - helm delete $DEPLOYMENT_NAME
+  - helm delete --namespace $NAMESPACE "$NAMESPACE-api"
 
 stage-deploy:
   <<: *deploy_stage
