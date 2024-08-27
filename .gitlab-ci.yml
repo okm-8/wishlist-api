@@ -15,7 +15,7 @@ variables:
   master:
     - if: '$CI_COMMIT_BRANCH == "master"'
   stage:
-    - if: '$CI_COMMIT_BRANCH = "stage"'
+    - if: '$CI_COMMIT_BRANCH == "stage"'
 
 .all-rules: &all-rules
   rules:
