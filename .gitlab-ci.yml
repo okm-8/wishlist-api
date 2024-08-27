@@ -11,17 +11,17 @@ variables:
 
 .rules:
   release:
-    - if: '$CI_COMMIT_REF_NAME =~ /^v\d+\.\d+\.\d+(-.*)?$/ && $CI_COMMIT_BRANCH == "master"'
+  - if: '$CI_COMMIT_REF_NAME =~ /^v\d+\.\d+\.\d+(-.*)?$/ && $CI_COMMIT_BRANCH == "master"'
   master:
-    - if: '$CI_COMMIT_BRANCH == "master"'
+  - if: '$CI_COMMIT_BRANCH == "master"'
   stage:
-    - if: '$CI_COMMIT_BRANCH == "stage"'
+  - if: '$CI_COMMIT_BRANCH == "stage"'
 
 .all-rules: &all-rules
   rules:
-    - !reference [.rules, release]
-    - !reference [.rules, master]
-    - !reference [.rules, stage]
+  - !reference [.rules, release]
+  - !reference [.rules, master]
+  - !reference [.rules, stage]
 
 build:
   <<: *all-rules
@@ -47,7 +47,7 @@ test:
   stage: test
   when: on_success
   dependencies:
-    - build
+  - build
   tags:
   - n3u
   - test
@@ -63,7 +63,7 @@ test:
   stage: deploy
   when: manual
   dependencies:
-    - build
+  - build
   variables:
     NAMESPACE: ""
     GITLAB_USER: "neudp"
@@ -84,35 +84,35 @@ test:
 .deploy_stage: &deploy_stage
   <<: *deploy
   tags:
-    - n3u
-    - stage
-    - helm
+  - n3u
+  - stage
+  - helm
 
 .delete: &delete
   tags:
-    - n3u
-    - stage
-    - helm
+  - n3u
+  - stage
+  - helm
   stage: delete
   when: manual
   variables:
     DEPLOYMENT_NAME: ""
   script:
-    - helm delete $DEPLOYMENT_NAME
+  - helm delete $DEPLOYMENT_NAME
 
 stage-deploy:
   <<: *deploy_stage
   rules:
-    - !reference [.rules, stage]
+  - !reference [.rules, stage]
   when: on_success
   variables:
     NAMESPACE: st-wishlist
   before_script:
-    - cp $STAGE_VALUES_OVERRIDES_YAML $CI_PROJECT_DIR/charts/values.overrides.yaml
+  - cp $STAGE_VALUES_OVERRIDES_YAML $CI_PROJECT_DIR/charts/values.overrides.yaml
 
 stage-delete:
   <<: *delete
   rules:
-     - !reference [.rules, stage]
+  - !reference [.rules, stage]
   variables:
     NAMESPACE: st-wishlist
