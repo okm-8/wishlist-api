@@ -15,7 +15,7 @@ variables:
   master:
     - if: '$CI_COMMIT_BRANCH == "master"'
   stage:
-    - if: '$CI_COMMIT_BRANCH =~ /^stage(-\d+)?$/'
+    - if: '$CI_COMMIT_BRANCH = "stage"'
 
 .all-rules: &all-rules
   rules:
@@ -70,7 +70,7 @@ test:
     GITLAB_TOKEN: $NEUDP_TOKEN
   script:
   - >-
-    helm upgrade --install $CI_PROJECT_DIR/charts --wait
+    helm upgrade --install "$NAMESPACE-api" $CI_PROJECT_DIR/charts --wait
     --namespace $NAMESPACE --create-namespace
     --values $CI_PROJECT_DIR/charts/values.yaml
     --values $CI_PROJECT_DIR/charts/values.overrides.yaml
@@ -106,13 +106,13 @@ stage-deploy:
     - !reference [.rules, stage]
   when: on_success
   variables:
-    NAMESPACE: st-wishlist-api
+    NAMESPACE: st-wishlist
   before_script:
-    - cp $STAGE_0_VALUES_OVERRIDES_YAML $CI_PROJECT_DIR/charts/values.overrides.yaml
+    - cp $STAGE_VALUES_OVERRIDES_YAML $CI_PROJECT_DIR/charts/values.overrides.yaml
 
 stage-delete:
   <<: *delete
   rules:
-    - !reference [.rules, stage]
+     - !reference [.rules, stage]
   variables:
-    NAMESPACE: st-wishlist-api
+    NAMESPACE: st-wishlist
