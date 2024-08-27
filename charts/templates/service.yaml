@@ -51,7 +51,7 @@ spec:
             name: wishlist-api-secrets
       containers:
       - name: api
-        image: "{{ .Values.registry }}:{{ .Values.version }}"
+        image: "{{ .Values.registry }}:{{ .Values.version }}.{{ .Values.build }}"
         imagePullPolicy: {{ .Values.imagePullPolicy }}
         args: ["system", "core"]
         ports:
